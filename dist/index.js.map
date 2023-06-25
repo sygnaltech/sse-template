@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../src/index.ts"],
+  "sourcesContent": ["const init = () => {\n    console.log('loaded')\n}\n\ndocument.addEventListener(\"DOMContentLoaded\", init)"],
+  "mappings": "MAAA,IAAMA,EAAO,IAAM,CACf,QAAQ,IAAI,QAAQ,CACxB,EAEA,SAAS,iBAAiB,mBAAoBA,CAAI",
+  "names": ["init"]
+}
