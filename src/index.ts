@@ -6,10 +6,10 @@
 
 import { HomePage } from "./page/home";
 import { RouteDispatcher } from "./routeDispatcher";
+import { VERSION } from "./version";
 
 // Global vars
 const SITE_NAME = 'Site';
-const VERSION = 'v0.1.0';
 
 
 
@@ -32,11 +32,11 @@ declare global {
 
 const init = () => {
     
-    console.log(`${SITE_NAME} package init ${VERSION}`);
+    console.log(`${SITE_NAME} package init v${VERSION}`);
 
     var routeDispatcher = new RouteDispatcher();
     routeDispatcher.routes = {
-        '/home': () => {
+        '/': () => {
 
             (new HomePage()).init();
 
