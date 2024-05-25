@@ -2,6 +2,14 @@
  * Index  
  * Main entry point
  * 
+ * Reference project-
+ * https://sygnal-site-engine.webflow.io/
+ * https://sygnal-site-engine.design.webflow.com/ 
+ * 
+ * ENGINE MODE
+ * ?engine.mode=dev
+ * ?engine.mode=prod
+ * 
  */
 
 import { HomePage } from "./page/home";
