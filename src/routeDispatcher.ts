@@ -53,10 +53,9 @@ export class RouteDispatcher {
         if (handler) {
             handler();
         } else {
-            console.log('No specific function for this path.');
+//            console.log('No specific function for this path.');
             // Default function or behavior for unspecified paths
         }
     }
-    
     
 }

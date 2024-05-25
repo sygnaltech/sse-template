@@ -42,10 +42,8 @@ function initEngine() {
         default:
             const scriptUrl = getCurrentScriptUrl();
             if (scriptUrl) {
-                console.log("Current script URL:", scriptUrl);
     
                 const engineScriptUrl = scriptUrl.replace('init.js', 'index.js');
-                console.log("New script URL:", engineScriptUrl);
                 
                 loadScript(engineScriptUrl);
                 break;

@@ -61,10 +61,8 @@ const init = () => {
  */
 
 if (document.readyState !== 'loading') {
-    console.log('document is already ready, just execute code here');
     init();
 } else {
-    console.log('document was not ready, place code here');
     document.addEventListener("DOMContentLoaded", init);
 }
 

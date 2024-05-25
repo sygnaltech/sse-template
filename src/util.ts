@@ -15,9 +15,6 @@ export function getQueryParam(name: string): string | null {
 export function loadScript(url: string): void {
     const script = document.createElement('script');
     script.src = url;
-
-console.log("loading script", url); 
-
 //    script.async = true;
     document.body.appendChild(script);
 }
