@@ -1,4 +1,64 @@
 
+
+// Determine Webflow breakpoint?
+
+
+// Utility function to get a query parameter value by name
+export function getQueryParam(name: string): string | null {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
+
+// Add a new async script to the page
+// at the end of the body
+export function loadScript(url: string): void {
+    const script = document.createElement('script');
+    script.src = url;
+
+console.log("loading script", url); 
+
+//    script.async = true;
+    document.body.appendChild(script);
+}
+
+// Add a new CSS file to the page
+export function loadCSS(url: string): void {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = url;
+    document.head.appendChild(link);
+}
+
+// Replace an existing script source
+export function replaceScriptSource(element: HTMLScriptElement, newSrc: string): void {
+    element.src = newSrc;
+}
+
+// Replace an existing CSS source
+export function replaceCSSLink(element: HTMLLinkElement, newHref: string): void {
+    element.href = newHref;
+}
+
+// Function to prepend text to the document title in development mode
+export function prependToTitle(text: string): void {
+    document.title = `${text}${document.title}`;
+}
+
+// Function to get the current script URL
+export function getCurrentScriptUrl(): string | null {
+    // Check if document.currentScript is supported
+    if (document.currentScript) {
+        // Cast to HTMLScriptElement and get the src attribute
+        const currentScript = document.currentScript as HTMLScriptElement;
+        return currentScript.src;
+    }
+    // For browsers that do not support document.currentScript
+    console.error("document.currentScript is not supported in this browser.");
+    return null;
+}
+
+
 export function findAncestorWithAttribute(element: HTMLElement, attributeName: string): HTMLElement | null {
     let currentElement: HTMLElement | null = element;
 
