@@ -2,9 +2,7 @@
  * Index  
  * Main entry point
  * 
- * Reference project-
- * https://sygnal-site-engine.webflow.io/
- * https://sygnal-site-engine.design.webflow.com/ 
+ * https://engine.sygnal.com/
  * 
  * ENGINE MODE
  * ?engine.mode=dev
@@ -20,25 +18,22 @@ import { VERSION } from "./version";
 // Global vars
 const SITE_NAME = 'Site';
 
-// GSAP
-// Luxon
-// Cookies
-// Templatting, like handlebars 
-// Howler
-
-
 // Global object
 window[SITE_NAME] = window[SITE_NAME] || {}; 
 var SiteData = window[SITE_NAME];
 
-// Extend the Window interface to include fsAttributes
+// Extend the Window interface to include globals
+// as a Typescript accessibility convenience
 declare global {
     interface Window {
-      fsAttributes: [string, (filterInstances: any[]) => void][];
 
-    //   modelsDataSourceElems: NodeListOf<HTMLElement>;
-    //   modelsSelectElem: HTMLElement | null;
-    //   modelsNavElem: HTMLElement | null;
+        // Finsweet attributes
+        fsAttributes: [string, (filterInstances: any[]) => void][];
+
+        //   modelsDataSourceElems: NodeListOf<HTMLElement>;
+        //   modelsSelectElem: HTMLElement | null;
+        //   modelsNavElem: HTMLElement | null; 
+
     }
 }
 
@@ -62,7 +57,7 @@ const init = () => {
 }
 
 /**
- * Bootstrap
+ * Initialize
  */
 
 if (document.readyState !== 'loading') {
