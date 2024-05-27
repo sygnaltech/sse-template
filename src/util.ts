@@ -123,3 +123,38 @@ const pixelValue = convertToPixels("10vh");
 console.log(pixelValue);
 */
 
+async function getResponseHeader(headerName: string, url: string | undefined = undefined): Promise<string | undefined> {
+
+    const headers: Headers | undefined = await getResponseHeaders(url);
+
+    if(!headers)
+        return undefined;
+
+    if(!headers.has(headerName)) 
+        return undefined;
+
+    return headers[headerName];
+
+}
+
+// Function to check if the reverse proxy header is present
+async function getResponseHeaders(url: string | undefined = undefined): Promise<Headers | undefined> {
+    try {
+
+        if(!url) {
+            url = window.location.href
+        }
+
+        const response = await fetch(url, {
+            method: 'HEAD', // Only fetch headers
+        });
+
+        return response.headers;
+
+    } catch (error) {
+        console.error('Error checking reverse proxy header:', error);
+    }
+
+    return undefined;
+}
+
