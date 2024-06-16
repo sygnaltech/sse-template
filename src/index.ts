@@ -10,17 +10,23 @@
  * 
  */
 
-import { HomePage } from "./page/home";
-import { RouteDispatcher } from "./routeDispatcher";
-import { Site } from "./site";
 import { VERSION } from "./version";
+import { routeDispatcher } from "./routes";
+
+interface SiteDataType {
+    // Define properties and their types for SiteDataType
+    // For example:
+    // someProperty?: string;
+    // anotherProperty?: number;
+    // Add other properties as needed
+}
 
 // Global vars
 const SITE_NAME = 'Site';
 
-// Global object
-window[SITE_NAME] = window[SITE_NAME] || {}; 
-var SiteData = window[SITE_NAME];
+// // Global object
+// window[SITE_NAME] = window[SITE_NAME] || {}; 
+// var SiteData = window[SITE_NAME];
 
 // Extend the Window interface to include globals
 // as a Typescript accessibility convenience
@@ -29,6 +35,7 @@ declare global {
 
         // Finsweet attributes
         fsAttributes: [string, (filterInstances: any[]) => void][];
+        Site: SiteDataType
 
         //   modelsDataSourceElems: NodeListOf<HTMLElement>;
         //   modelsSelectElem: HTMLElement | null;
@@ -37,34 +44,33 @@ declare global {
     }
 }
 
-const init = () => {
+// Perform setup, sync
+const setup = () => {
     
     console.log(`${SITE_NAME} package init v${VERSION}`);
+    
+    routeDispatcher().setupRoute(); 
 
-    // Perform Site-wide actions
-    (new Site()).init();
+}
 
-    // Perform Page-specific actions
-    var routeDispatcher = new RouteDispatcher();
-    routeDispatcher.routes = {
-        '/': () => {
+// Perform exec, async
+// After DOM content loaded 
+const exec = () => {
+    
+    routeDispatcher().execRoute(); 
 
-            (new HomePage()).init();
-
-        }
-    };
-    routeDispatcher.dispatchRoute(); 
 }
 
 /**
  * Initialize
  */
 
+// Perform setup, sync
+setup();
+
+// Perform exec, async
 if (document.readyState !== 'loading') {
-    init();
+    exec();
 } else {
-    document.addEventListener("DOMContentLoaded", init);
+    document.addEventListener("DOMContentLoaded", exec);
 }
-
-
-

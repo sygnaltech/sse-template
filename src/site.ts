@@ -3,15 +3,41 @@
  * Site
  */
 
-import gsap from 'gsap'; 
+import { IRouteHandler } from "./engine/routeDispatcher";
+import { loadCSS } from "./engine/core";
+
+// import gsap from 'gsap'; 
  
 
-export class Site {
+export class Site implements IRouteHandler {
 
   constructor() {
   }
-  
-  init() {
+
+  setup() {
+
+    // Get current script path up to index.js
+    // /css/index.css 
+
+    const currentScript = document.currentScript as HTMLScriptElement;
+    
+    if (!currentScript) {
+      console.log('Could not determine the current script.');
+      return;
+    }
+
+    const fullUrl = new URL(currentScript.src);
+    const pathWithoutFile = fullUrl.origin + fullUrl.pathname.substring(0, fullUrl.pathname.lastIndexOf('/') + 1);
+    console.log('Current script URL without file name:', pathWithoutFile);
+
+console.log("installing site CSS")
+
+    // important - DEV, TEST, PROD
+    loadCSS(pathWithoutFile + "css/index.css"); 
+   
+  }
+
+  exec() {
 
     console.log("Site."); 
 
