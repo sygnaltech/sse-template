@@ -1,8 +1,5 @@
 "use strict";
 (() => {
-  // src/version.ts
-  var VERSION = "0.1.0";
-
   // src/page/home.ts
   var HomePage = class {
     constructor() {
@@ -91,21 +88,5 @@
     };
     return routeDispatcher2;
   };
-
-  // src/index.ts
-  var SITE_NAME = "Site";
-  var setup = () => {
-    console.log(`${SITE_NAME} package init v${VERSION}`);
-    routeDispatcher().setupRoute();
-  };
-  var exec = () => {
-    routeDispatcher().execRoute();
-  };
-  setup();
-  if (document.readyState !== "loading") {
-    exec();
-  } else {
-    document.addEventListener("DOMContentLoaded", exec);
-  }
 })();
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=routes.js.map

@@ -2,6 +2,6 @@
   "version": 3,
   "sources": ["../src/version.ts"],
   "sourcesContent": ["\n// version.ts\nexport const VERSION = '0.1.0'; // Update this manually on each release\n\n"],
-  "mappings": ";;AAEO,MAAM,UAAU;",
+  "mappings": ";;;AAEO,MAAM,UAAU;",
   "names": []
 }

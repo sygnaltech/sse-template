@@ -1,5 +1,5 @@
 /*
- * Index  
+ * SITE  
  * Main entry point
  * 
  * https://engine.sygnal.com/

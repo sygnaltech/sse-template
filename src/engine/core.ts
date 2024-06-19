@@ -27,6 +27,23 @@ export function loadCSS(url: string): void {
     document.head.appendChild(link);
 }
 
+// Add a new Engine CSS file to the page
+// Expected to be in the /dist/css/ dir 
+export function loadEngineCSS(cssFileName: string): void {
+    // Get the URL of the currently executing script
+    const currentScript = document.currentScript as HTMLScriptElement;
+    if (currentScript) {
+        const scriptURL = new URL(currentScript.src);
+        const origin = scriptURL.origin;
+        const path = scriptURL.pathname.substring(0, scriptURL.pathname.lastIndexOf('/'));
+
+        const cssURL = `${origin}${path}/css/${cssFileName}`;
+        loadCSS(cssURL);
+    } else {
+        console.error('Unable to determine the currently executing script.');
+    }
+}
+
 // Add a new Style element to the page
 export function loadStyle(css: string): void {
     const style = document.createElement('style');
