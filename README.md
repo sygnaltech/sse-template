@@ -1,5 +1,8 @@
 # Setup
 
+See the official SSE docs here- 
+https://engine.sygnal.com/
+
 ## package.json
 
 Edit name and version
