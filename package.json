@@ -6,12 +6,14 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "serve",
-    "build": "esbuild ./src/*.ts --bundle --sourcemap --outdir=dist --watch",
+    "build": "node build.js",
+    "watch": "node build.js --watch",
+    "esbuild": "esbuild ./src/*.ts --bundle --sourcemap --outdir=dist --watch",
     "format": "prettier src/*.ts -w"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sygnaltech/dev-template.git"
+    "url": "git+https://github.com/sygnaltech/webflow-dev-template.git"
   },
   "author": {
     "name": "Michael Wells",
@@ -20,9 +22,9 @@
   },
   "license": "",
   "bugs": {
-    "url": "https://github.com/sygnaltech/dev-template/issues"
+    "url": "https://github.com/sygnaltech/webflow-dev-template/issues"
   },
-  "homepage": "https://github.com/sygnaltech/dev-template#readme",
+  "homepage": "https://github.com/sygnaltech/webflow-dev-template#readme",
   "devDependencies": {
     "esbuild": "^0.15.14",
     "prettier": "^2.7.1",
@@ -30,6 +32,8 @@
     "typescript": "^4.9.3"
   },
   "dependencies": {
+    "@sygnal/sse": "^0.1.1",
+    "glob": "^10.4.2",
     "gsap": "^3.12.5",
     "js-cookie": "^3.0.5"
   }

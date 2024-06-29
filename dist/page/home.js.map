@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/page/home.ts"],
+  "sourcesContent": ["\n/*\n * Page | Home\n */\n\nimport { IRouteHandler } from \"@sygnal/sse\";\n \n\nexport class HomePage implements IRouteHandler {\n\n  constructor() {\n  }\n\n  setup() {\n        \n  }\n\n  exec() {\n\n  }\n\n}\n"],
+  "mappings": ";;;AAQO,MAAM,WAAN,MAAwC;AAAA,IAE7C,cAAc;AAAA,IACd;AAAA,IAEA,QAAQ;AAAA,IAER;AAAA,IAEA,OAAO;AAAA,IAEP;AAAA,EAEF;",
+  "names": []
+}

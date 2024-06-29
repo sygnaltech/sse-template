@@ -12,8 +12,9 @@
 
 import { VERSION } from "./version";
 import { routeDispatcher } from "./routes";
+import { initSSE } from "@sygnal/sse"; 
 
-interface SiteDataType {
+interface SiteGlobalDataType {
     // Define properties and their types for SiteDataType
     // For example:
     // someProperty?: string;
@@ -33,16 +34,17 @@ const SITE_NAME = 'Site';
 declare global {
     interface Window {
 
-        // Finsweet attributes
+        // fsAttributes
         fsAttributes: [string, (filterInstances: any[]) => void][];
-        Site: SiteDataType
 
-        //   modelsDataSourceElems: NodeListOf<HTMLElement>;
-        //   modelsSelectElem: HTMLElement | null;
-        //   modelsNavElem: HTMLElement | null; 
+        // Site global data
+        Site: SiteGlobalDataType;
 
     }
 }
+
+// Init SSE Engine
+initSSE();
 
 // Perform setup, sync
 const setup = () => {

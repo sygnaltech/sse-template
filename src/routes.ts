@@ -11,11 +11,12 @@
  */
 
 import { HomePage } from "./page/home";
-import { RouteDispatcher } from "./engine/routeDispatcher";
+import { RouteDispatcher } from "@sygnal/sse";
+import { Site } from "./site";
 
 export const routeDispatcher = (): RouteDispatcher => {
     
-    var routeDispatcher = new RouteDispatcher();
+    var routeDispatcher = new RouteDispatcher(Site);
     routeDispatcher.routes = {
 
         // Site paes
