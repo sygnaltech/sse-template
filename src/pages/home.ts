@@ -3,10 +3,10 @@
  * Page | Home
  */
 
-import { IRouteHandler } from "@sygnal/sse";
+import { IModule } from "@sygnal/sse";
  
 
-export class HomePage implements IRouteHandler {
+export class HomePage implements IModule {
 
   constructor() {
   }

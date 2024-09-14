@@ -13,6 +13,8 @@
 import { VERSION } from "./version";
 import { routeDispatcher } from "./routes";
 import { initSSE } from "@sygnal/sse"; 
+import { ComponentManager } from "./engine/component-manager";
+import { TestComponent } from "./components/test";
 
 interface SiteGlobalDataType {
     // Define properties and their types for SiteDataType
@@ -40,8 +42,22 @@ declare global {
         // Site global data
         Site: SiteGlobalDataType;
 
+        Webflow: {
+            require: (module: string) => {
+                destroy: () => void; 
+                init: () => void;
+            };
+          };
+
+        sa5: any;
+//        sa5: Array<[string, (accordion: any, index: number) => void]>;
+
+        componentManager: ComponentManager;
+
     }
 }
+
+window.componentManager = new ComponentManager();
 
 // Init SSE Engine
 initSSE();
@@ -60,6 +76,27 @@ const setup = () => {
 const exec = () => {
     
     routeDispatcher().execRoute(); 
+
+    // Components
+    const components = document.querySelectorAll<HTMLElement>('[sse-component]');
+    components.forEach(element=> {
+        // Get the value of the SSE-component attribute
+        const componentValue = element.getAttribute('sse-component');
+         
+        if (componentValue) {
+            // Run a switch statement based on the attribute value
+            switch (componentValue) {
+                case 'test':
+ 
+                    (new TestComponent(element)).exec();
+
+                    break;
+                default:
+                    console.log('Unknown component:', componentValue);
+                    break;
+            }
+        }
+    });    
 
 }
 
