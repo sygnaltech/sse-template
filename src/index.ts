@@ -12,17 +12,10 @@
 
 import { VERSION } from "./version";
 import { routeDispatcher } from "./routes";
-import { initSSE } from "@sygnal/sse"; 
+import { initSSE } from "@sygnal/sse";
 import { ComponentManager } from "./engine/component-manager";
 import { TestComponent } from "./components/test";
-
-interface SiteGlobalDataType {
-    // Define properties and their types for SiteDataType
-    // For example:
-    // someProperty?: string;
-    // anotherProperty?: number;
-    // Add other properties as needed
-}
+import type { ComponentRegistry, SiteGlobalData } from "./types";
 
 // Global vars
 const SITE_NAME = 'Site';
@@ -31,29 +24,39 @@ const SITE_NAME = 'Site';
 // window[SITE_NAME] = window[SITE_NAME] || {}; 
 // var SiteData = window[SITE_NAME];
 
+/**
+ * Component Registry
+ * Add all your components here with their corresponding names
+ */
+const componentRegistry: ComponentRegistry = {
+    'test': TestComponent,
+    // Add more components here:
+    // 'my-component': MyComponent,
+};
+
 // Extend the Window interface to include globals
-// as a Typescript accessibility convenience
+// as a TypeScript accessibility convenience
 declare global {
     interface Window {
-
         // fsAttributes
-        fsAttributes: [string, (filterInstances: any[]) => void][];
+        fsAttributes: [string, (filterInstances: unknown[]) => void][];
 
         // Site global data
-        Site: SiteGlobalDataType;
+        Site: SiteGlobalData;
 
+        // Webflow object
         Webflow: {
             require: (module: string) => {
-                destroy: () => void; 
+                destroy: () => void;
                 init: () => void;
             };
-          };
+        };
 
-        sa5: any;
-//        sa5: Array<[string, (accordion: any, index: number) => void]>;
+        // SA5 library (if using Sygnal Attributes)
+        sa5: unknown;
 
+        // Component manager instance
         componentManager: ComponentManager;
-
     }
 }
 
@@ -72,32 +75,56 @@ const setup = () => {
 }
 
 // Perform exec, async
-// After DOM content loaded 
+// After DOM content loaded
 const exec = () => {
-    
-    routeDispatcher().execRoute(); 
 
-    // Components
-    const components = document.querySelectorAll<HTMLElement>('[sse-component]');
-    components.forEach(element=> {
-        // Get the value of the SSE-component attribute
-        const componentValue = element.getAttribute('sse-component');
-         
-        if (componentValue) {
-            // Run a switch statement based on the attribute value
-            switch (componentValue) {
-                case 'test':
- 
-                    (new TestComponent(element)).exec();
+    routeDispatcher().execRoute();
 
-                    break;
-                default:
-                    console.log('Unknown component:', componentValue);
-                    break;
-            }
+    // Initialize components
+    initializeComponents();
+}
+
+/**
+ * Initialize all components found in the DOM
+ * Searches for elements with [sse-component] attribute and instantiates them
+ */
+function initializeComponents(): void {
+    const componentElements = document.querySelectorAll<HTMLElement>('[sse-component]');
+
+    componentElements.forEach(element => {
+        const componentName = element.getAttribute('sse-component');
+
+        if (!componentName) {
+            console.warn('Component element found without sse-component value:', element);
+            return;
         }
-    });    
 
+        const ComponentClass = componentRegistry[componentName];
+
+        if (!ComponentClass) {
+            console.warn(`Unknown component type: "${componentName}". Did you register it in the componentRegistry?`, element);
+            return;
+        }
+
+        try {
+            // Instantiate the component
+            const componentInstance = new ComponentClass(element);
+
+            // Register with component manager
+            window.componentManager.registerComponent(componentName, componentInstance);
+
+            // Execute the component
+            componentInstance.exec();
+        } catch (error) {
+            console.error(`Error initializing component "${componentName}":`, error, element);
+        }
+    });
+
+    // Log summary
+    const totalComponents = window.componentManager.getTotalCount();
+    if (totalComponents > 0) {
+        console.log(`Initialized ${totalComponents} component(s):`, window.componentManager.getComponentTypes());
+    }
 }
 
 /**

@@ -8,8 +8,10 @@
     "serve": "serve",
     "build": "node build.js",
     "watch": "node build.js --watch",
+    "build:scss": "sass src:dist --style=compressed --source-map",
+    "watch:scss": "sass src:dist --style=compressed --source-map --watch",
     "esbuild": "esbuild ./src/*.ts --bundle --sourcemap --outdir=dist --watch",
-    "format": "prettier src/*.ts -w"
+    "format": "prettier src/**/*.{ts,scss} -w"
   },
   "repository": {
     "type": "git",
@@ -28,6 +30,7 @@
   "devDependencies": {
     "esbuild": "^0.15.14",
     "prettier": "^2.7.1",
+    "sass": "^1.93.2",
     "serve": "^14.1.1",
     "typescript": "^4.9.3"
   },

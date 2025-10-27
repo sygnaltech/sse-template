@@ -1,0 +1,25 @@
+// Site-wide styles
+// This file is compiled to dist/site.css
+
+@use "sass:color";
+
+// Variables
+$primary-color: #007bff;
+$secondary-color: #6c757d;
+$font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+// Global styles
+body {
+  font-family: $font-family;
+  margin: 0;
+  padding: 0;
+}
+
+// Example component styles
+.sse-component {
+  &[sse-component="test"] {
+    padding: 1rem;
+    background-color: color.scale($primary-color, $lightness: 80%);
+    border-radius: 4px;
+  }
+}
