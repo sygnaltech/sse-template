@@ -10,9 +10,9 @@
  */
 
 import { VERSION } from "./version";
-import { routeDispatcher, initializeComponents, logRegistryStats } from "./routes";
+import { routeDispatcher, initializeComponents, getRegistryStats } from "./routes";
 import { initSSE } from "@sygnal/sse";
-import { ComponentManager } from "./engine/component-manager";
+import { ComponentManager } from "@sygnal/sse";
 import type { SiteGlobalData } from "./types";
 
 // Global vars
@@ -38,9 +38,6 @@ declare global {
 
         // SA5 library (if using Sygnal Attributes)
         sa5: unknown;
-
-        // Component manager instance
-        componentManager: ComponentManager;
     }
 }
 
@@ -56,7 +53,8 @@ const setup = () => {
     console.log(`${SITE_NAME} package init v${VERSION}`);
 
     // Log auto-discovered registry stats
-    logRegistryStats();
+    const stats = getRegistryStats();
+    console.log(`[Registry] Discovered ${stats.pages} page(s) and ${stats.components} component(s)`);
 
     // Setup routes
     routeDispatcher().setupRoute();

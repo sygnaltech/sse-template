@@ -3,7 +3,8 @@
     "allow": [
       "Bash(cat:*)",
       "Bash(npm run build:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Read(//d/Projects/Engines/sse-core/src/**)"
     ],
     "deny": [],
     "ask": []

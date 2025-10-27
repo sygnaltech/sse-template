@@ -56,18 +56,24 @@ sse-template/
 ├── src/
 │   ├── index.ts              # Main entry point
 │   ├── site.ts               # Site-level module
-│   ├── routes.ts             # Route configuration
+│   ├── routes.ts             # Route & component imports
+│   ├── types.ts              # Template-specific types
+│   ├── version.ts            # Version constant
 │   ├── site.scss             # Global styles
 │   ├── pages/
-│   │   └── home.ts          # Home page module
-│   ├── components/
-│   │   └── test.ts          # Example component
-│   └── engine/
-│       └── component-manager.ts  # Component registry
+│   │   ├── home.ts          # Home page module
+│   │   ├── blog.ts          # Blog page (wildcard example)
+│   │   └── about.ts         # About page (multi-route example)
+│   └── components/
+│       ├── test.ts          # Test component
+│       └── example.ts       # Example component
 ├── dist/                     # Compiled output (git-ignored)
-├── build.js                  # Build script
+├── build.js                  # Build script (tsc + esbuild + sass)
+├── generate-imports.js       # Optional: Auto-generate imports
 ├── package.json             # Dependencies & scripts
-└── tsconfig.json            # TypeScript config
+├── tsconfig.json            # TypeScript config
+├── MIGRATION.md             # Migration guide for v0.3.0+
+└── README.md                # This file
 ```
 
 ## npm Scripts
@@ -139,8 +145,7 @@ Pages are automatically discovered using the `@page` decorator. Just create and 
 
 ```typescript
 // src/pages/about.ts
-import { IModule } from '@sygnal/sse';
-import { page } from '../engine/registry';
+import { IModule, page } from '@sygnal/sse';
 
 @page('/about')  // ← Decorator auto-registers this route!
 export class AboutPage implements IModule {
@@ -177,8 +182,7 @@ You can use multiple `@page` decorators on a single class to handle multiple rou
 
 ```typescript
 // src/pages/about.ts
-import { IModule } from '@sygnal/sse';
-import { page } from '../engine/registry';
+import { IModule, page } from '@sygnal/sse';
 
 @page('/about')      // All three routes
 @page('/about-us')   // use the same
@@ -211,8 +215,7 @@ Wildcard routes are supported using `*` for dynamic paths:
 
 ```typescript
 // src/pages/blog.ts
-import { IModule } from '@sygnal/sse';
-import { page } from '../engine/registry';
+import { IModule, page } from '@sygnal/sse';
 
 @page('/blog/*')  // ← Matches /blog/post-1, /blog/category/tech, etc.
 export class BlogPage implements IModule {
@@ -241,8 +244,7 @@ Components are automatically discovered using the `@component` decorator!
 
 ```typescript
 // src/components/my-component.ts
-import { IModule } from "@sygnal/sse";
-import { component } from "../engine/registry";
+import { IModule, component } from '@sygnal/sse';
 
 @component('my-component')  // ← Decorator auto-registers this component!
 export class MyComponent implements IModule {
@@ -280,7 +282,7 @@ import "./components/my-component";  // ← Add your import here!
 ### 3. Use in Webflow:
 
 ```html
-<div sse-component="my-component">
+<div data-component="my-component">
   <!-- Component content -->
 </div>
 ```
@@ -405,7 +407,7 @@ interface IModule {
 
 ### Component Discovery
 
-Components are automatically discovered via the `sse-component` attribute and instantiated by the framework.
+Components are automatically discovered via the `data-component` attribute and instantiated by the framework.
 
 ## Dependencies
 

@@ -3,8 +3,7 @@
  * Handles all /blog/* routes with wildcard matching
  */
 
-import { IModule } from "@sygnal/sse";
-import { page } from "../engine/registry";
+import { IModule, page } from "@sygnal/sse";
 
 @page('/blog/*')  // ← Wildcard route - matches /blog/post-1, /blog/category/tech, etc.
 export class BlogPage implements IModule {

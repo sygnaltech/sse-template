@@ -4,7 +4,7 @@
  */
 
 import { IModule } from "@sygnal/sse";
-import { component } from "../engine/registry";
+import { component } from "@sygnal/sse";
 
 @component('test')
 export class TestComponent implements IModule {

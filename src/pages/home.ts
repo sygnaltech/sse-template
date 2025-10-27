@@ -3,8 +3,7 @@
  * Home page module for the root route
  */
 
-import { IModule } from "@sygnal/sse";
-import { page } from "../engine/registry";
+import { IModule, page } from "@sygnal/sse";
 
 @page('/')
 export class HomePage implements IModule {

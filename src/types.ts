@@ -1,40 +1,16 @@
 /**
- * Type definitions for SSE Template
+ * Template-specific type definitions
+ *
+ * Note: Core framework types are exported from @sygnal/sse
  */
 
-import { IModule } from "@sygnal/sse";
-
 /**
- * Component constructor that takes an HTMLElement
- */
-export type ComponentConstructor = new (element: HTMLElement) => IModule;
-
-/**
- * Page constructor (no arguments)
- */
-export type PageConstructor = new () => IModule;
-
-/**
- * Component registry map - maps component names to their constructors
- */
-export type ComponentRegistry = {
-  [componentName: string]: ComponentConstructor;
-};
-
-/**
- * Page registry map - maps routes to page constructors
- */
-export type PageRegistry = {
-  [route: string]: PageConstructor;
-};
-
-/**
- * Site global data interface
- * Extend this with your custom site-wide data properties
+ * Site-specific global data structure
+ * Customize this interface based on your site's needs
  */
 export interface SiteGlobalData {
-  // Add your site-specific properties here
+  // Add site-specific global data properties here
   // Example:
+  // config?: Record<string, unknown>;
   // user?: { id: string; name: string };
-  // config?: { apiUrl: string };
 }

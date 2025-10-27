@@ -4,7 +4,7 @@
  */
 
 import { IModule } from "@sygnal/sse";
-import { page } from "../engine/registry";
+import { page } from "@sygnal/sse";
 
 // Multiple decorators - same page handles multiple routes!
 @page('/about')
