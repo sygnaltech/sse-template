@@ -327,6 +327,27 @@ export class BlogPage implements IModule {
 - Exact matches take precedence over wildcards
 - Useful for dynamic content (blog posts, product pages, etc.)
 
+**Multiple Routes Per Page:**
+You can stack multiple `@page` decorators on a single class:
+
+```typescript
+@page('/about')
+@page('/about-us')
+@page('/team')
+export class AboutPage implements IModule {
+  async exec(): Promise<void> {
+    const path = window.location.pathname;
+    // Handle different routes as needed
+  }
+}
+```
+
+Use cases:
+- Route aliases (e.g., `/shop`, `/store`)
+- Localized URLs (e.g., `/en/contact`, `/es/contacto`)
+- Legacy URL support
+- Similar pages sharing logic
+
 ### Adding a New Component
 
 1. Create `src/components/my-component.ts` with `@component('my-component')` decorator

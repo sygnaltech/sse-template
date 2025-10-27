@@ -18,8 +18,8 @@ import { getAllPages, getComponent, getRegistryStats } from "./engine/registry";
 // ============================================================
 import "./pages/home";
 import "./pages/blog";
+import "./pages/about";
 // Add more page imports here as you create them
-// import "./pages/about";
 
 // ============================================================
 // COMPONENTS - Import all components to trigger @component decorator

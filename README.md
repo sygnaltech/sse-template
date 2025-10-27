@@ -171,6 +171,40 @@ The route is automatically registered. No manual route mapping needed!
 
 **Note:** All pages and components are imported in `routes.ts` - this is the central registry location.
 
+### Multiple Routes Per Page
+
+You can use multiple `@page` decorators on a single class to handle multiple routes:
+
+```typescript
+// src/pages/about.ts
+import { IModule } from '@sygnal/sse';
+import { page } from '../engine/registry';
+
+@page('/about')      // All three routes
+@page('/about-us')   // use the same
+@page('/team')       // page class!
+export class AboutPage implements IModule {
+  constructor() {}
+
+  setup(): void {}
+
+  async exec(): Promise<void> {
+    // Optionally check which route was accessed
+    const currentPath = window.location.pathname;
+
+    if (currentPath === '/team') {
+      // Show team-specific content
+    }
+  }
+}
+```
+
+**Use cases:**
+- Route aliases (`/shop`, `/store`, `/products`)
+- Localized URLs (`/en/contact`, `/es/contacto`)
+- Legacy URL support
+- Similar pages with shared logic
+
 ### Wildcard Routes
 
 Wildcard routes are supported using `*` for dynamic paths:
