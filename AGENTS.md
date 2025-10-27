@@ -67,12 +67,21 @@ This template repository serves as a basis for **monorepo site packages** for We
 ### Entry Point Flow
 
 **`src/index.ts`** (only file loaded in Webflow):
-1. Imports and initializes SSE framework
-2. Defines component registry (type-safe mapping)
+1. Imports `routes.ts` (which imports all pages and components)
+2. Initializes SSE framework
 3. Sets up global window interfaces
 4. Executes two-phase lifecycle:
-   - `setup()` - Synchronous, runs at `</head>`
-   - `exec()` - Async, runs after DOMContentLoaded
+   - `setup()` - Synchronous, runs at `</head>`, calls `logRegistryStats()` and `routeDispatcher().setupRoute()`
+   - `exec()` - Async, runs after DOMContentLoaded, calls `routeDispatcher().execRoute()` and `initializeComponents()`
+
+**`src/routes.ts`** (central registry):
+1. Imports all pages to trigger `@page` decorators
+2. Imports all components to trigger `@component` decorators
+3. Exports `routeDispatcher()` for route management
+4. Exports `initializeComponents()` for component activation
+5. Exports `logRegistryStats()` for debugging
+
+**One place for all module registration** - just add imports to `routes.ts`
 
 ### Component System (Decorator-Based Auto-Discovery)
 
@@ -88,9 +97,10 @@ export class MyComponent implements IModule {
 }
 ```
 
-**Then just import in `src/index.ts`:**
+**Then just import in `src/routes.ts`:**
 
 ```typescript
+// Under COMPONENTS section
 import "./components/my-component";  // Decorator runs, component registered
 ```
 
@@ -200,15 +210,16 @@ Allows querying all instances of a component type at runtime.
 ```
 src/
 ├── index.ts              # Entry point - ONLY file loaded in Webflow
-│                         # Imports components to trigger decorators
+│                         # Imports routes.ts and manages initialization
+├── routes.ts             # **CENTRAL REGISTRY** - All pages & components imported here
+│                         # Exports routeDispatcher() and initializeComponents()
 ├── site.ts               # Site-level module (global functionality)
-├── routes.ts             # Route configuration
-│                         # Imports pages to trigger decorators
 ├── types.ts              # TypeScript type definitions
 ├── version.ts            # Version constant
 ├── site.scss             # Global styles
 ├── pages/
-│   └── home.ts          # Page modules with @page decorator
+│   ├── home.ts          # Page modules with @page decorator
+│   └── blog.ts          # Example wildcard page
 ├── components/
 │   ├── test.ts          # Components with @component decorator
 │   └── example.ts       # Detailed component example
@@ -319,7 +330,7 @@ export class BlogPage implements IModule {
 ### Adding a New Component
 
 1. Create `src/components/my-component.ts` with `@component('my-component')` decorator
-2. Add import to `src/index.ts`: `import "./components/my-component";`
+2. Add import to `src/routes.ts` under COMPONENTS section: `import "./components/my-component";`
 3. Use in Webflow: `<div sse-component="my-component">`
 4. Build and deploy
 
@@ -355,14 +366,15 @@ TypeScript strict mode is enabled. All types must be properly defined.
 ## Things to Remember
 
 1. **Only `index.ts` is loaded** - Everything must be imported directly or indirectly from this file
-2. **Decorators require imports** - Files with `@component` or `@page` must be imported to trigger registration
-3. **Component names are strings** - Use descriptive kebab-case names in decorators
-4. **Two-phase lifecycle** - Use `setup()` for early init, `exec()` for DOM manipulation
-5. **Build before deploy** - Always run `npm run build:prod` before pushing to GitHub
-6. **Version bumps matter** - CDN caches by version, bump version in package.json for updates
-7. **Source maps included** - Debugging works in production via source maps
-8. **Strict TypeScript** - All code must pass type checking before bundling
-9. **Experimental decorators enabled** - Required in tsconfig.json for decorator support
+2. **`routes.ts` is the central registry** - ALL pages and components imported here (not index.ts)
+3. **Decorators require imports** - Files with `@component` or `@page` must be imported in routes.ts
+4. **Component names are strings** - Use descriptive kebab-case names in decorators
+5. **Two-phase lifecycle** - Use `setup()` for early init, `exec()` for DOM manipulation
+6. **Build before deploy** - Always run `npm run build:prod` before pushing to GitHub
+7. **Version bumps matter** - CDN caches by version, bump version in package.json for updates
+8. **Source maps included** - Debugging works in production via source maps
+9. **Strict TypeScript** - All code must pass type checking before bundling
+10. **Experimental decorators enabled** - Required in tsconfig.json for decorator support
 
 ## Performance Considerations
 

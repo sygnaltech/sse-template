@@ -157,15 +157,19 @@ export class AboutPage implements IModule {
 }
 ```
 
-### 2. Import in `src/routes.ts`:
+### 2. Import in `src/routes.ts` (under PAGES section):
 
 ```typescript
-// Just add the import - the decorator handles registration!
+// ============================================================
+// PAGES - Import all pages to trigger @page decorator
+// ============================================================
 import "./pages/home";
-import "./pages/about";  // ← That's it!
+import "./pages/about";  // ← Add your import here!
 ```
 
 The route is automatically registered. No manual route mapping needed!
+
+**Note:** All pages and components are imported in `routes.ts` - this is the central registry location.
 
 ### Wildcard Routes
 
@@ -229,12 +233,14 @@ export class MyComponent implements IModule {
 }
 ```
 
-### 2. Import in `src/index.ts`:
+### 2. Import in `src/routes.ts` (under COMPONENTS section):
 
 ```typescript
-// Just add the import - the decorator handles registration!
+// ============================================================
+// COMPONENTS - Import all components to trigger @component decorator
+// ============================================================
 import "./components/test";
-import "./components/my-component";  // ← That's it!
+import "./components/my-component";  // ← Add your import here!
 ```
 
 ### 3. Use in Webflow:
