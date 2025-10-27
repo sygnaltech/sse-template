@@ -1,6 +1,6 @@
 {
-  "name": "dev-template",
-  "version": "0.1.0",
+  "name": "webflow-site-engine",
+  "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
