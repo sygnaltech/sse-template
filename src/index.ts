@@ -1,38 +1,29 @@
-/*
- * SITE  
+/**
+ * SITE
  * Main entry point
- * 
+ *
  * https://engine.sygnal.com/
- * 
+ *
  * ENGINE MODE
  * ?engine.mode=dev
  * ?engine.mode=prod
- * 
  */
 
 import { VERSION } from "./version";
 import { routeDispatcher } from "./routes";
 import { initSSE } from "@sygnal/sse";
 import { ComponentManager } from "./engine/component-manager";
-import { TestComponent } from "./components/test";
-import type { ComponentRegistry, SiteGlobalData } from "./types";
+import { getComponent, getRegistryStats } from "./engine/registry";
+import type { SiteGlobalData } from "./types";
+
+// Import all components to trigger decorator registration
+import "./components/test";
+import "./components/example";
+// Add more component imports here as you create them
+// import "./components/my-component";
 
 // Global vars
 const SITE_NAME = 'Site';
-
-// // Global object
-// window[SITE_NAME] = window[SITE_NAME] || {}; 
-// var SiteData = window[SITE_NAME];
-
-/**
- * Component Registry
- * Add all your components here with their corresponding names
- */
-const componentRegistry: ComponentRegistry = {
-    'test': TestComponent,
-    // Add more components here:
-    // 'my-component': MyComponent,
-};
 
 // Extend the Window interface to include globals
 // as a TypeScript accessibility convenience
@@ -65,19 +56,23 @@ window.componentManager = new ComponentManager();
 // Init SSE Engine
 initSSE();
 
-// Perform setup, sync
+/**
+ * Perform setup - synchronous initialization
+ */
 const setup = () => {
-    
     console.log(`${SITE_NAME} package init v${VERSION}`);
-    
-    routeDispatcher().setupRoute(); 
 
+    // Log auto-discovered registry stats
+    const stats = getRegistryStats();
+    console.log(`[Registry] Discovered ${stats.pages} page(s) and ${stats.components} component(s)`);
+
+    routeDispatcher().setupRoute();
 }
 
-// Perform exec, async
-// After DOM content loaded
+/**
+ * Perform exec - asynchronous execution after DOM ready
+ */
 const exec = () => {
-
     routeDispatcher().execRoute();
 
     // Initialize components
@@ -86,7 +81,7 @@ const exec = () => {
 
 /**
  * Initialize all components found in the DOM
- * Searches for elements with [sse-component] attribute and instantiates them
+ * Auto-discovers components using @component decorator
  */
 function initializeComponents(): void {
     const componentElements = document.querySelectorAll<HTMLElement>('[sse-component]');
@@ -99,10 +94,11 @@ function initializeComponents(): void {
             return;
         }
 
-        const ComponentClass = componentRegistry[componentName];
+        // Get component from auto-discovered registry
+        const ComponentClass = getComponent(componentName);
 
         if (!ComponentClass) {
-            console.warn(`Unknown component type: "${componentName}". Did you register it in the componentRegistry?`, element);
+            console.warn(`Unknown component type: "${componentName}". Did you add the @component decorator and import it?`, element);
             return;
         }
 
@@ -123,7 +119,7 @@ function initializeComponents(): void {
     // Log summary
     const totalComponents = window.componentManager.getTotalCount();
     if (totalComponents > 0) {
-        console.log(`Initialized ${totalComponents} component(s):`, window.componentManager.getComponentTypes());
+        console.log(`Initialized ${totalComponents} component instance(s):`, window.componentManager.getComponentTypes());
     }
 }
 

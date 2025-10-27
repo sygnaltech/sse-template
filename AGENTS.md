@@ -74,51 +74,74 @@ This template repository serves as a basis for **monorepo site packages** for We
    - `setup()` - Synchronous, runs at `</head>`
    - `exec()` - Async, runs after DOMContentLoaded
 
-### Component System
+### Component System (Decorator-Based Auto-Discovery)
 
-**Type-Safe Registry Pattern** (NOT switch statements):
+**Using `@component` Decorator:**
 
 ```typescript
-// src/index.ts
-const componentRegistry: ComponentRegistry = {
-    'test': TestComponent,
-    'my-component': MyComponent,
-};
+// src/components/my-component.ts
+import { component } from "../engine/registry";
+
+@component('my-component')  // ← Auto-registers with this name
+export class MyComponent implements IModule {
+  constructor(elem: HTMLElement) { /* ... */ }
+}
+```
+
+**Then just import in `src/index.ts`:**
+
+```typescript
+import "./components/my-component";  // Decorator runs, component registered
 ```
 
 **How it works:**
-1. Find all elements with `[sse-component]` attribute
-2. Get component name from attribute value
-3. Lookup constructor in registry
-4. Instantiate with element reference
-5. Register in ComponentManager
-6. Execute component
+1. Class decorator `@component(name)` registers component at module load
+2. Find all elements with `[sse-component]` attribute in DOM
+3. Get component name from attribute value
+4. Lookup constructor in auto-discovered registry
+5. Instantiate with element reference
+6. Register in ComponentManager
+7. Execute component
 
 **Benefits:**
-- Compile-time validation of component names
-- No switch statement maintenance
-- Automatic component discovery
+- Component name lives with the class (co-located)
+- No manual registry maintenance
+- Auto-discovery at import time
 - Full TypeScript type safety
+- Consistent with page registration pattern
 
-### Routing System
+### Routing System (Decorator-Based Auto-Discovery)
 
-**`src/routes.ts`** - Route dispatcher configuration:
+**Using `@page` Decorator:**
 
 ```typescript
+// src/pages/about.ts
+import { page } from "../engine/registry";
+
+@page('/about')  // ← Auto-registers with this route
+export class AboutPage implements IModule {
+  constructor() { /* ... */ }
+}
+```
+
+**Then just import in `src/routes.ts`:**
+
+```typescript
+import "./pages/about";  // Decorator runs, route registered
+
 export const routeDispatcher = (): RouteDispatcher => {
-    var routeDispatcher = new RouteDispatcher(Site);
-    routeDispatcher.routes = {
-        '/': HomePage,
-        '/about': AboutPage,
-    };
-    return routeDispatcher;
+    const dispatcher = new RouteDispatcher(Site);
+    dispatcher.routes = getAllPages();  // Auto-discovered routes
+    return dispatcher;
 }
 ```
 
 **Route flow:**
-1. `setup()` calls `routeDispatcher().setupRoute()` (synchronous)
-2. `exec()` calls `routeDispatcher().execRoute()` (async)
-3. Current route determines which page module executes
+1. Class decorator `@page(route)` registers page at module load
+2. `getAllPages()` returns all auto-discovered routes
+3. `setup()` calls `routeDispatcher().setupRoute()` (synchronous)
+4. `exec()` calls `routeDispatcher().execRoute()` (async)
+5. Current route determines which page module executes
 
 ### Module Interface
 
@@ -148,11 +171,28 @@ window.componentManager.getTotalCount(): number;
 
 Allows querying all instances of a component type at runtime.
 
+### Registry System
+
+**`src/engine/registry.ts`** - Decorator-based auto-discovery:
+
+**Decorators:**
+- `@component(name)` - Auto-register component classes
+- `@page(route)` - Auto-register page classes
+
+**Registry Functions:**
+- `getComponent(name)` - Get component constructor by name
+- `getAllComponents()` - Get all registered components
+- `getPage(route)` - Get page constructor by route
+- `getAllPages()` - Get all registered pages
+- `getRegistryStats()` - Get discovery statistics
+
 ### Type Definitions
 
 **`src/types.ts`** - Centralized type definitions:
-- `ComponentConstructor` - Type for component class constructors
+- `ComponentConstructor` - Type for component class constructors (takes HTMLElement)
+- `PageConstructor` - Type for page class constructors (no arguments)
 - `ComponentRegistry` - Type-safe component name → constructor mapping
+- `PageRegistry` - Type-safe route → page constructor mapping
 - `SiteGlobalData` - Interface for site-wide global data
 
 ## File Structure
@@ -160,18 +200,21 @@ Allows querying all instances of a component type at runtime.
 ```
 src/
 ├── index.ts              # Entry point - ONLY file loaded in Webflow
+│                         # Imports components to trigger decorators
 ├── site.ts               # Site-level module (global functionality)
 ├── routes.ts             # Route configuration
+│                         # Imports pages to trigger decorators
 ├── types.ts              # TypeScript type definitions
 ├── version.ts            # Version constant
 ├── site.scss             # Global styles
 ├── pages/
-│   └── home.ts          # Page modules (one per route)
+│   └── home.ts          # Page modules with @page decorator
 ├── components/
-│   ├── test.ts          # Example component
+│   ├── test.ts          # Components with @component decorator
 │   └── example.ts       # Detailed component example
 └── engine/
-    └── component-manager.ts  # Component instance registry
+    ├── component-manager.ts  # Component instance registry
+    └── registry.ts           # Decorator-based auto-discovery system
 
 dist/
 ├── index.js             # SINGLE BUNDLE - everything included
@@ -188,11 +231,16 @@ dist/
 
 **Implication:** Use esbuild with `bundle: true` and single entry point. Don't generate multiple JS files.
 
-### 2. Type-Safe Component Registry
+### 2. Decorator-Based Auto-Discovery
 
-**Why:** Avoid runtime errors from typos, get compile-time validation.
+**Why:** Co-locate component/page names with their classes. Consistent pattern for both.
 
-**Implication:** Use object registry, not switch statements. TypeScript validates component names at build time.
+**Implication:**
+- Use `@component(name)` and `@page(route)` decorators
+- Component/page name lives with the class definition
+- Just import files to trigger registration
+- TypeScript experimental decorators must be enabled
+- Slightly larger bundle (~1.5KB) but much better DX
 
 ### 3. No Type Declarations Generated
 
@@ -229,18 +277,64 @@ Updates to sse-core should be framework improvements that benefit all projects.
 
 ### Adding a New Page
 
-1. Create `src/pages/about.ts` implementing `IModule`
-2. Add to `src/routes.ts`: `'/about': AboutPage`
-3. Import in routes file
-4. Build and deploy
+1. Create `src/pages/about.ts` with `@page('/about')` decorator
+2. Add import to `src/routes.ts`: `import "./pages/about";`
+3. Build and deploy
+
+**Example (Exact Route):**
+```typescript
+import { IModule } from '@sygnal/sse';
+import { page } from '../engine/registry';
+
+@page('/about')
+export class AboutPage implements IModule {
+  constructor() {}
+  setup(): void {}
+  async exec(): Promise<void> {}
+}
+```
+
+**Example (Wildcard Route):**
+```typescript
+import { IModule } from '@sygnal/sse';
+import { page } from '../engine/registry';
+
+@page('/blog/*')  // Matches /blog/post-1, /blog/category/tech, etc.
+export class BlogPage implements IModule {
+  constructor() {}
+  setup(): void {}
+  async exec(): Promise<void> {
+    const slug = window.location.pathname.replace('/blog/', '');
+    // Handle dynamic routing based on slug
+  }
+}
+```
+
+**Wildcard Matching:**
+- Routes ending with `*` are treated as wildcard routes
+- `'/blog/*'` matches `/blog/anything`, `/blog/nested/path`, etc.
+- Exact matches take precedence over wildcards
+- Useful for dynamic content (blog posts, product pages, etc.)
 
 ### Adding a New Component
 
-1. Create `src/components/my-component.ts` implementing `IModule`
-2. Add to `src/index.ts` component registry: `'my-component': MyComponent`
-3. Import component in index.ts
-4. Use in Webflow: `<div sse-component="my-component">`
-5. Build and deploy
+1. Create `src/components/my-component.ts` with `@component('my-component')` decorator
+2. Add import to `src/index.ts`: `import "./components/my-component";`
+3. Use in Webflow: `<div sse-component="my-component">`
+4. Build and deploy
+
+**Example:**
+```typescript
+import { IModule } from '@sygnal/sse';
+import { component } from '../engine/registry';
+
+@component('my-component')
+export class MyComponent implements IModule {
+  constructor(elem: HTMLElement) {}
+  setup(): void {}
+  async exec(): Promise<void> {}
+}
+```
 
 ### Debugging Type Errors
 
@@ -253,23 +347,26 @@ TypeScript strict mode is enabled. All types must be properly defined.
 ### Optimizing Bundle Size
 
 - Bundle size matters for CDN load time
-- Production build minifies to ~6.8KB (gzips to ~2-3KB)
+- Production build minifies to ~8.3KB (gzips to ~3KB)
+- Decorator overhead: ~1.5KB (worth it for developer experience)
 - Monitor bundle size with each build
 - Consider code splitting if bundle grows significantly (though single bundle is preferred)
 
 ## Things to Remember
 
 1. **Only `index.ts` is loaded** - Everything must be imported directly or indirectly from this file
-2. **Component registry is type-safe** - Don't use string literals, use the registry object
-3. **Two-phase lifecycle** - Use `setup()` for early init, `exec()` for DOM manipulation
-4. **Build before deploy** - Always run `npm run build:prod` before pushing to GitHub
-5. **Version bumps matter** - CDN caches by version, bump version in package.json for updates
-6. **Source maps included** - Debugging works in production via source maps
-7. **Strict TypeScript** - All code must pass type checking before bundling
+2. **Decorators require imports** - Files with `@component` or `@page` must be imported to trigger registration
+3. **Component names are strings** - Use descriptive kebab-case names in decorators
+4. **Two-phase lifecycle** - Use `setup()` for early init, `exec()` for DOM manipulation
+5. **Build before deploy** - Always run `npm run build:prod` before pushing to GitHub
+6. **Version bumps matter** - CDN caches by version, bump version in package.json for updates
+7. **Source maps included** - Debugging works in production via source maps
+8. **Strict TypeScript** - All code must pass type checking before bundling
+9. **Experimental decorators enabled** - Required in tsconfig.json for decorator support
 
 ## Performance Considerations
 
-- **Bundle size**: Keep under 10KB minified (currently 6.8KB)
+- **Bundle size**: Keep under 10KB minified (currently 8.3KB with decorators)
 - **Lazy loading**: Not currently implemented (single bundle approach)
 - **Tree shaking**: esbuild automatically removes unused code
 - **Minification**: Production builds are minified

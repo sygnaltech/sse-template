@@ -1,31 +1,28 @@
-/*
- * SITE
- * Main entry point
- * 
+/**
+ * Route Dispatcher
+ * Auto-discovers and registers all pages using the @page decorator
+ *
  * https://engine.sygnal.com/
- * 
+ *
  * ENGINE MODE
  * ?engine.mode=dev
  * ?engine.mode=prod
- * 
  */
 
-import { HomePage } from "./pages/home";
 import { RouteDispatcher } from "@sygnal/sse";
 import { Site } from "./site";
+import { getAllPages } from "./engine/registry";
+
+// Import all pages to trigger decorator registration
+import "./pages/home";
+// Add more page imports here as you create them
+// import "./pages/about";
 
 export const routeDispatcher = (): RouteDispatcher => {
-    
-    var routeDispatcher = new RouteDispatcher(Site);
-    routeDispatcher.routes = {
+    const dispatcher = new RouteDispatcher(Site);
 
-        // Site paes
-        '/': HomePage,
+    // Auto-discovered routes from @page decorators
+    dispatcher.routes = getAllPages();
 
-        // TEST Pages
-
-    };
-
-    return routeDispatcher;
+    return dispatcher;
 }
-

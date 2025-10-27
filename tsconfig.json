@@ -8,7 +8,8 @@
       "esModuleInterop": true,
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true,
-//      "types": ["jest"]
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true
     },
     "include": ["src"],
     "exclude": ["node_modules", "dist"]

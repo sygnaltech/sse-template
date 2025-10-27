@@ -133,50 +133,80 @@ Page.loadEngineCSS("site.css");
 
 ## Adding Pages
 
-1. Create a new page module in `src/pages/`:
+Pages are automatically discovered using the `@page` decorator. Just create and import!
+
+### 1. Create a page module in `src/pages/`:
 
 ```typescript
 // src/pages/about.ts
-import { Page } from '@sygnal/sse';
+import { IModule } from '@sygnal/sse';
+import { page } from '../engine/registry';
 
+@page('/about')  // ← Decorator auto-registers this route!
 export class AboutPage implements IModule {
   constructor() {}
 
-  setup() {
+  setup(): void {
     // Runs at </head> - synchronous
   }
 
-  async exec() {
+  async exec(): Promise<void> {
     // Runs after DOMContentLoaded - asynchronous
+    console.log('About page loaded');
   }
 }
 ```
 
-2. Register the route in `src/routes.ts`:
+### 2. Import in `src/routes.ts`:
 
 ```typescript
-import { AboutPage } from './pages/about';
+// Just add the import - the decorator handles registration!
+import "./pages/home";
+import "./pages/about";  // ← That's it!
+```
 
-export const routeDispatcher = (): RouteDispatcher => {
-    var routeDispatcher = new RouteDispatcher(Site);
-    routeDispatcher.routes = {
-        '/': HomePage,
-        '/about': AboutPage,  // Add your route
-    };
-    return routeDispatcher;
+The route is automatically registered. No manual route mapping needed!
+
+### Wildcard Routes
+
+Wildcard routes are supported using `*` for dynamic paths:
+
+```typescript
+// src/pages/blog.ts
+import { IModule } from '@sygnal/sse';
+import { page } from '../engine/registry';
+
+@page('/blog/*')  // ← Matches /blog/post-1, /blog/category/tech, etc.
+export class BlogPage implements IModule {
+  constructor() {}
+
+  setup(): void {}
+
+  async exec(): Promise<void> {
+    // Access the full path for dynamic routing
+    const fullPath = window.location.pathname;
+    const slug = fullPath.replace('/blog/', '');
+
+    console.log('Blog slug:', slug);
+    // Load content based on slug
+  }
 }
 ```
 
+Routes are matched in the order they're registered, with exact matches taking precedence over wildcards.
+
 ## Adding Components
 
-Components are reusable modules that bind to specific HTML elements via the `sse-component` attribute.
+Components are automatically discovered using the `@component` decorator!
 
 ### 1. Create a component class in `src/components/`:
 
 ```typescript
 // src/components/my-component.ts
 import { IModule } from "@sygnal/sse";
+import { component } from "../engine/registry";
 
+@component('my-component')  // ← Decorator auto-registers this component!
 export class MyComponent implements IModule {
   private elem: HTMLElement;
 
@@ -185,7 +215,7 @@ export class MyComponent implements IModule {
   }
 
   setup(): void {
-    // Synchronous setup - runs at </head>
+    // Synchronous setup - runs before DOM ready
   }
 
   async exec(): Promise<void> {
@@ -199,26 +229,23 @@ export class MyComponent implements IModule {
 }
 ```
 
-### 2. Register in the component registry in `src/index.ts`:
+### 2. Import in `src/index.ts`:
 
 ```typescript
-import { MyComponent } from "./components/my-component";
-
-const componentRegistry: ComponentRegistry = {
-    'test': TestComponent,
-    'my-component': MyComponent,  // Add your component here
-};
+// Just add the import - the decorator handles registration!
+import "./components/test";
+import "./components/my-component";  // ← That's it!
 ```
 
-The component will now be automatically instantiated when found in the DOM, with full type safety.
-
-### 3. Use in Webflow by adding attribute to any element:
+### 3. Use in Webflow:
 
 ```html
 <div sse-component="my-component">
   <!-- Component content -->
 </div>
 ```
+
+The component is automatically discovered and instantiated!
 
 ### Component Features
 

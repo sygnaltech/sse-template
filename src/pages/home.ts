@@ -1,22 +1,24 @@
-
-/*
+/**
  * Page | Home
+ * Home page module for the root route
  */
 
 import { IModule } from "@sygnal/sse";
- 
+import { page } from "../engine/registry";
 
+@page('/')
 export class HomePage implements IModule {
 
   constructor() {
   }
 
-  setup() {
-        
+  setup(): void {
+    // Synchronous setup
   }
 
-  exec() {
-
+  async exec(): Promise<void> {
+    // Asynchronous execution
+    console.log('HomePage initialized');
   }
 
 }

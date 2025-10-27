@@ -4,7 +4,9 @@
  */
 
 import { IModule } from "@sygnal/sse";
+import { component } from "../engine/registry";
 
+@component('test')
 export class TestComponent implements IModule {
   private elem: HTMLElement;
 

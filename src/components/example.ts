@@ -4,7 +4,9 @@
  */
 
 import { IModule } from "@sygnal/sse";
+import { component } from "../engine/registry";
 
+@component('example')
 export class ExampleComponent implements IModule {
   private elem: HTMLElement;
   private isActive: boolean = false;
