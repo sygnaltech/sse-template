@@ -7,11 +7,12 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "serve",
     "build": "node build.js",
+    "build:prod": "node build.js && npm run minify",
     "watch": "node build.js --watch",
-    "build:scss": "sass src:dist --style=compressed --source-map",
-    "watch:scss": "sass src:dist --style=compressed --source-map --watch",
-    "esbuild": "esbuild ./src/*.ts --bundle --sourcemap --outdir=dist --watch",
-    "format": "prettier src/**/*.{ts,scss} -w"
+    "minify": "esbuild dist/index.js --minify --sourcemap --outfile=dist/index.js --allow-overwrite",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier src/**/*.{ts,scss} -w",
+    "clean": "rm -rf dist"
   },
   "repository": {
     "type": "git",

@@ -1,23 +1,47 @@
 const esbuild = require('esbuild');
-const glob = require('glob');
+const { execSync } = require('child_process');
 const sass = require('sass');
 const fs = require('fs');
 const path = require('path');
+const glob = require('glob');
 
 // Check if watch mode is enabled
 const isWatch = process.argv.includes('--watch');
 
-// Build TypeScript files
-const entryPoints = glob.sync('./src/**/*.ts');
+// Single entry point for bundling (only index.ts is loaded in Webflow)
+const entryPoint = './src/index.ts';
 
-// Build SCSS files
+/**
+ * Run TypeScript type checking
+ * This doesn't generate files, just validates types
+ */
+function typeCheck() {
+  console.log('Running type check...');
+  try {
+    execSync('npx tsc --noEmit', { stdio: 'inherit' });
+    console.log('✓ Type check passed');
+    return true;
+  } catch (error) {
+    console.error('✗ Type check failed');
+    return false;
+  }
+}
+
+/**
+ * Build SCSS files
+ */
 function buildSCSS() {
   const scssFiles = glob.sync('./src/**/*.scss');
+
+  if (scssFiles.length === 0) {
+    console.log('No SCSS files to compile');
+    return;
+  }
 
   scssFiles.forEach(file => {
     try {
       const result = sass.compile(file, {
-        style: 'compressed', // or 'expanded' for development
+        style: 'compressed',
         sourceMap: true,
       });
 
@@ -47,44 +71,84 @@ function buildSCSS() {
   });
 }
 
-// Initial SCSS build
-console.log('Building SCSS files...');
-buildSCSS();
+/**
+ * Build TypeScript with esbuild
+ */
+async function buildTypeScript() {
+  console.log('Bundling TypeScript with esbuild...');
 
-// Build TypeScript files with esbuild
-console.log('Building TypeScript files...');
-esbuild.build({
-  entryPoints,
-  bundle: true,
-  sourcemap: true,
-  outdir: 'dist',
-  watch: isWatch ? {
-    onRebuild(error, result) {
-      if (error) {
-        console.error('✗ TypeScript build failed:', error);
-      } else {
-        console.log('✓ TypeScript rebuilt successfully');
-      }
+  try {
+    await esbuild.build({
+      entryPoints: [entryPoint],
+      bundle: true,
+      sourcemap: true,
+      outfile: 'dist/index.js',
+      platform: 'browser',
+      target: 'es6',
+      minify: false, // Set to true for production builds
+      watch: isWatch ? {
+        onRebuild(error, result) {
+          if (error) {
+            console.error('✗ esbuild failed:', error);
+          } else {
+            console.log('✓ TypeScript rebuilt');
+          }
+        }
+      } : false,
+    });
+
+    console.log('✓ Bundle created: dist/index.js');
+  } catch (error) {
+    console.error('✗ Build failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Main build process
+ */
+async function build() {
+  console.log('='.repeat(50));
+  console.log('Starting build process...');
+  console.log('='.repeat(50));
+
+  // Step 1: Type check (skip in watch mode for faster rebuilds)
+  if (!isWatch) {
+    if (!typeCheck()) {
+      process.exit(1);
     }
-  } : false,
-}).then(() => {
-  console.log('✓ Initial TypeScript build complete');
+  }
 
-  // Watch SCSS files if in watch mode
+  // Step 2: Build SCSS
+  console.log('\nBuilding SCSS files...');
+  buildSCSS();
+
+  // Step 3: Bundle TypeScript
+  console.log('\nBundling TypeScript...');
+  await buildTypeScript();
+
+  // Step 4: Watch SCSS files if in watch mode
   if (isWatch) {
-    console.log('Watching SCSS files for changes...');
+    console.log('\nWatching SCSS files for changes...');
     const scssFiles = glob.sync('./src/**/*.scss');
     scssFiles.forEach(file => {
       fs.watch(file, (eventType) => {
         if (eventType === 'change') {
-          console.log(`SCSS file changed: ${file}`);
+          console.log(`\nSCSS file changed: ${file}`);
           buildSCSS();
         }
       });
     });
-    console.log('👀 Watching for changes...');
+    console.log('👀 Watch mode active - waiting for changes...');
+  } else {
+    console.log('\n' + '='.repeat(50));
+    console.log('✓ Build complete!');
+    console.log('='.repeat(50));
   }
-}).catch((error) => {
-  console.error('✗ Build failed:', error);
+}
+
+// Run the build
+build().catch((error) => {
+  console.error('Build failed:', error);
   process.exit(1);
 });

@@ -6,7 +6,7 @@ A TypeScript-based template for building custom Webflow site extensions using th
 
 - **TypeScript** - Type-safe development with modern ES6+ features
 - **SCSS Support** - Write maintainable styles with variables, nesting, and mixins
-- **Fast Build System** - esbuild for TypeScript, Dart Sass for SCSS
+- **Fast Build System** - TypeScript type checking + esbuild bundler, Dart Sass for SCSS
 - **Watch Mode** - Auto-rebuild on file changes during development
 - **Component System** - Reusable, attribute-based components
 - **Route Management** - Page-based architecture with route dispatcher
@@ -34,10 +34,11 @@ npm install
 ### 3. Build
 
 ```bash
-npm run build
+npm run build       # Development build with type checking
+npm run build:prod  # Production build with minification
 ```
 
-This compiles all TypeScript files from `src/**/*.ts` to `dist/` and all SCSS files from `src/**/*.scss` to `dist/`.
+This performs type checking, bundles all TypeScript into a single `dist/index.js`, and compiles SCSS files to `dist/`.
 
 ### 4. Development
 
@@ -73,12 +74,13 @@ sse-template/
 
 | Command | Description |
 |---------|-------------|
-| `npm run build` | Build both TypeScript and SCSS |
-| `npm run watch` | Watch mode - auto-rebuild on changes |
-| `npm run build:scss` | Build SCSS only |
-| `npm run watch:scss` | Watch SCSS files only |
+| `npm run build` | Development build with type checking + bundling |
+| `npm run build:prod` | Production build with minification (for deployment) |
+| `npm run watch` | Watch mode - auto-rebuild TypeScript and SCSS |
+| `npm run typecheck` | Run TypeScript type checking only |
 | `npm run serve` | Start local dev server on port 3000 |
 | `npm run format` | Format TypeScript and SCSS with Prettier |
+| `npm run clean` | Remove dist directory |
 
 ## Working with SCSS
 
@@ -268,6 +270,48 @@ The SSE framework supports query parameters for switching modes:
 
 - `?engine.mode=dev` - Force development mode
 - `?engine.mode=prod` - Force production mode
+
+## Build System
+
+The template uses a hybrid build approach combining TypeScript's type checking with esbuild's fast bundling.
+
+### Build Process
+
+1. **Type Check** - TypeScript compiler validates all types (`tsc --noEmit`)
+2. **Bundle** - esbuild bundles `src/index.ts` and all imports into single `dist/index.js`
+3. **SCSS Compile** - Dart Sass compiles all `.scss` files to `.css`
+
+### Development vs Production
+
+**Development Build** (`npm run build`):
+- Full type checking
+- Unminified output for easier debugging
+- Source maps included
+- ~15KB bundle size
+
+**Production Build** (`npm run build:prod`):
+- Full type checking
+- Minified output
+- Source maps included
+- ~6.8KB bundle size (smaller, faster loading)
+
+### Watch Mode
+
+```bash
+npm run watch
+```
+
+- TypeScript auto-rebuilds on file changes (no type check in watch for speed)
+- SCSS auto-compiles on file changes
+- Runs continuously until stopped
+
+### Why This Approach?
+
+- **tsc** provides comprehensive type checking
+- **esbuild** provides extremely fast bundling
+- **Single bundle** (`dist/index.js`) loads all dependencies
+- No duplicate code (all imports bundled once)
+- Best of both worlds: safety + speed
 
 ## Architecture
 
