@@ -3,25 +3,22 @@
  * Handles multiple routes for the same page
  */
 
-import { IModule } from "@sygnal/sse";
-import { page } from "@sygnal/sse";
+import { PageBase, page } from "@sygnal/sse-core";
 
 // Multiple decorators - same page handles multiple routes!
 @page('/about')
 @page('/about-us')
 @page('/team')
-export class AboutPage implements IModule {
+export class AboutPage extends PageBase {
 
-  constructor() {
+  protected onPrepare(): void {
+    // Synchronous setup - called during <head> load
+    console.log('About page preparing...', this.pageInfo.path);
   }
 
-  setup(): void {
-    // Synchronous setup
-  }
-
-  async exec(): Promise<void> {
-    // You can check which route was accessed
-    const currentPath = window.location.pathname;
+  protected async onLoad(): Promise<void> {
+    // You can check which route was accessed via pageInfo
+    const currentPath = this.pageInfo.path;
 
     console.log('About page loaded via:', currentPath);
 

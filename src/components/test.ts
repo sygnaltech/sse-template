@@ -1,29 +1,25 @@
 /**
  * Component | Test
- * Example component demonstrating the IModule pattern
+ * Example component demonstrating the ComponentBase pattern
  */
 
-import { IModule } from "@sygnal/sse";
-import { component } from "@sygnal/sse";
+import { ComponentBase, component } from "@sygnal/sse-core";
 
 @component('test')
-export class TestComponent implements IModule {
-  private elem: HTMLElement;
+export class TestComponent extends ComponentBase {
 
-  constructor(elem: HTMLElement) {
-    this.elem = elem;
-  }
-
-  setup(): void {
+  protected onPrepare(): void {
     // Synchronous setup - runs before DOM is ready
     // Good for: configuration, variable initialization
+    console.log('TestComponent preparing on:', this.context.name);
   }
 
-  async exec(): Promise<void> {
+  protected async onLoad(): Promise<void> {
     // Asynchronous execution - runs after DOM is ready
     // Good for: DOM manipulation, event binding, API calls
 
-    console.log('TestComponent initialized on element:', this.elem);
+    console.log('TestComponent initialized on element:', this.element);
+    console.log('Data attributes:', this.context.dataAttributes);
 
     // Example: Access sa5 if available
     if (window.sa5) {
@@ -31,7 +27,7 @@ export class TestComponent implements IModule {
     }
 
     // Example: Add event listener
-    this.elem.addEventListener('click', () => {
+    this.element.addEventListener('click', () => {
       console.log('TestComponent clicked!');
     });
   }

@@ -3,30 +3,34 @@
  * A more detailed example showing component capabilities
  */
 
-import { IModule } from "@sygnal/sse";
-import { component } from "@sygnal/sse";
+import { ComponentBase, component, PageBase } from "@sygnal/sse-core";
 
 @component('example')
-export class ExampleComponent implements IModule {
-  private elem: HTMLElement;
+export class ExampleComponent extends ComponentBase {
   private isActive: boolean = false;
 
-  constructor(elem: HTMLElement) {
-    this.elem = elem;
-  }
-
-  setup(): void {
+  protected onPrepare(): void {
+    // Synchronous setup - called during <head> load
     // Read data attributes
-    const initialState = this.elem.dataset.initialState;
+    const initialState = this.element.dataset.initialState;
     if (initialState === 'active') {
       this.isActive = true;
     }
   }
 
-  async exec(): Promise<void> {
+  protected async onLoad(): Promise<void> {
+    // Asynchronous execution - called after DOM ready
+    
     // Apply initial state
     if (this.isActive) {
-      this.elem.classList.add('active');
+      this.element.classList.add('active');
+    }
+
+    // Access page info via singleton
+    const page = PageBase.getCurrentPage();
+    if (page) {
+      console.log('Example component on page:', page.pageInfo.pageId);
+      console.log('Collection item:', page.pageInfo.itemSlug);
     }
 
     // Bind events
@@ -37,15 +41,15 @@ export class ExampleComponent implements IModule {
   }
 
   private bindEvents(): void {
-    this.elem.addEventListener('click', this.handleClick.bind(this));
+    this.element.addEventListener('click', this.handleClick.bind(this));
   }
 
   private handleClick(event: MouseEvent): void {
     this.isActive = !this.isActive;
-    this.elem.classList.toggle('active', this.isActive);
+    this.element.classList.toggle('active', this.isActive);
 
     // Emit custom event
-    this.elem.dispatchEvent(new CustomEvent('exampleToggle', {
+    this.element.dispatchEvent(new CustomEvent('exampleToggle', {
       detail: { isActive: this.isActive },
       bubbles: true
     }));

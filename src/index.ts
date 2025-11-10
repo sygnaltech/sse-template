@@ -11,8 +11,8 @@
 
 import { VERSION } from "./version";
 import { routeDispatcher, initializeComponents, getRegistryStats } from "./routes";
-import { initSSE } from "@sygnal/sse";
-import { ComponentManager } from "@sygnal/sse";
+import { initSSE } from "@sygnal/sse-core";
+import { ComponentManager } from "@sygnal/sse-core";
 import type { SiteGlobalData } from "./types";
 
 // Global vars
@@ -46,6 +46,9 @@ window.componentManager = new ComponentManager();
 // Init SSE Engine
 initSSE();
 
+// Create dispatcher ONCE to preserve instance state
+const dispatcher = routeDispatcher();
+
 /**
  * Perform setup - synchronous initialization
  */
@@ -57,7 +60,7 @@ const setup = () => {
     console.log(`[Registry] Discovered ${stats.pages} page(s) and ${stats.components} component(s)`);
 
     // Setup routes
-    routeDispatcher().setupRoute();
+    dispatcher.setupRoute();
 }
 
 /**
@@ -65,7 +68,7 @@ const setup = () => {
  */
 const exec = () => {
     // Execute route
-    routeDispatcher().execRoute();
+    dispatcher.execRoute();
 
     // Initialize all components
     initializeComponents();

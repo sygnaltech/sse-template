@@ -14,7 +14,7 @@ import {
   getAllPages,
   getRegistryStats,
   initializeComponents
-} from "@sygnal/sse";
+} from "@sygnal/sse-core";
 import { Site } from "./site";
 
 // ============================================================

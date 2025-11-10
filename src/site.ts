@@ -3,7 +3,7 @@
  * Site
  */
 
-import { IModule, Page } from "@sygnal/sse";
+import { IModule, Page } from "@sygnal/sse-core";
 
 // import gsap from 'gsap'; 
  

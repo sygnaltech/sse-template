@@ -1,6 +1,6 @@
-# SSE Template - Webflow Site Engine Starter
+# SSE2 Template - Webflow Site Engine Starter
 
-A TypeScript-based template for building custom Webflow site extensions using the [Sygnal Site Engine (SSE)](https://engine.sygnal.com/) framework.
+A TypeScript-based template for building custom Webflow site extensions using the [Sygnal Site Engine (SSE2)](https://engine.sygnal.com/) framework.
 
 ## Features
 
@@ -8,8 +8,8 @@ A TypeScript-based template for building custom Webflow site extensions using th
 - **SCSS Support** - Write maintainable styles with variables, nesting, and mixins
 - **Fast Build System** - TypeScript type checking + esbuild bundler, Dart Sass for SCSS
 - **Watch Mode** - Auto-rebuild on file changes during development
-- **Component System** - Reusable, attribute-based components
-- **Route Management** - Page-based architecture with route dispatcher
+- **Component System** - Reusable, attribute-based components with automatic context detection
+- **Route Management** - Page-based architecture with automatic Webflow context
 - **Source Maps** - Debug TypeScript and SCSS in browser DevTools
 - **Development Server** - Local testing with hot reload
 
@@ -145,19 +145,22 @@ Pages are automatically discovered using the `@page` decorator. Just create and 
 
 ```typescript
 // src/pages/about.ts
-import { IModule, page } from '@sygnal/sse';
+import { PageBase, page } from '@sygnal/sse-core';
 
 @page('/about')  // ← Decorator auto-registers this route!
-export class AboutPage implements IModule {
-  constructor() {}
+export class AboutPage extends PageBase {
 
-  setup(): void {
-    // Runs at </head> - synchronous
+  protected onPrepare(): void {
+    // Synchronous setup - called during <head> load
+    // Access Webflow page context automatically
+    console.log('Page ID:', this.pageInfo.pageId);
+    console.log('Collection:', this.pageInfo.collectionId);
   }
 
-  async exec(): Promise<void> {
-    // Runs after DOMContentLoaded - asynchronous
+  protected async onLoad(): Promise<void> {
+    // Asynchronous execution - called after DOM ready
     console.log('About page loaded');
+    console.log('Current path:', this.pageInfo.path);
   }
 }
 ```
@@ -176,25 +179,47 @@ The route is automatically registered. No manual route mapping needed!
 
 **Note:** All pages and components are imported in `routes.ts` - this is the central registry location.
 
+### Automatic Webflow Context
+
+When you extend `PageBase`, your page automatically gets access to `this.pageInfo`:
+
+```typescript
+protected async onLoad(): Promise<void> {
+  // All available automatically:
+  console.log(this.pageInfo.path);         // Current path
+  console.log(this.pageInfo.url);          // Full URL
+  console.log(this.pageInfo.pageId);       // Webflow page ID
+  console.log(this.pageInfo.siteId);       // Webflow site ID
+  console.log(this.pageInfo.collectionId); // CMS collection ID (if applicable)
+  console.log(this.pageInfo.itemId);       // CMS item ID (if applicable)
+  console.log(this.pageInfo.itemSlug);     // CMS item slug (if applicable)
+  console.log(this.pageInfo.queryParams);  // URLSearchParams object
+  console.log(this.pageInfo.hash);         // URL hash
+  console.log(this.pageInfo.domain);       // Webflow domain
+  console.log(this.pageInfo.lang);         // Page language
+}
+```
+
 ### Multiple Routes Per Page
 
 You can use multiple `@page` decorators on a single class to handle multiple routes:
 
 ```typescript
 // src/pages/about.ts
-import { IModule, page } from '@sygnal/sse';
+import { PageBase, page } from '@sygnal/sse-core';
 
 @page('/about')      // All three routes
 @page('/about-us')   // use the same
 @page('/team')       // page class!
-export class AboutPage implements IModule {
-  constructor() {}
+export class AboutPage extends PageBase {
 
-  setup(): void {}
+  protected onPrepare(): void {
+    console.log('Preparing about page...');
+  }
 
-  async exec(): Promise<void> {
-    // Optionally check which route was accessed
-    const currentPath = window.location.pathname;
+  protected async onLoad(): Promise<void> {
+    // Check which route was accessed via pageInfo
+    const currentPath = this.pageInfo.path;
 
     if (currentPath === '/team') {
       // Show team-specific content
@@ -215,21 +240,27 @@ Wildcard routes are supported using `*` for dynamic paths:
 
 ```typescript
 // src/pages/blog.ts
-import { IModule, page } from '@sygnal/sse';
+import { PageBase, page } from '@sygnal/sse-core';
 
 @page('/blog/*')  // ← Matches /blog/post-1, /blog/category/tech, etc.
-export class BlogPage implements IModule {
-  constructor() {}
+export class BlogPage extends PageBase {
 
-  setup(): void {}
+  protected onPrepare(): void {
+    console.log('Blog page preparing...');
+  }
 
-  async exec(): Promise<void> {
-    // Access the full path for dynamic routing
-    const fullPath = window.location.pathname;
+  protected async onLoad(): Promise<void> {
+    // Access the full path via pageInfo
+    const fullPath = this.pageInfo.path;
     const slug = fullPath.replace('/blog/', '');
 
     console.log('Blog slug:', slug);
-    // Load content based on slug
+
+    // If this is a Webflow CMS collection page
+    if (this.pageInfo.itemSlug) {
+      console.log('CMS Item Slug:', this.pageInfo.itemSlug);
+      console.log('Collection ID:', this.pageInfo.collectionId);
+    }
   }
 }
 ```
@@ -238,31 +269,38 @@ Routes are matched in the order they're registered, with exact matches taking pr
 
 ## Adding Components
 
-Components are automatically discovered using the `@component` decorator!
+Components are automatically discovered using the `@component` decorator and extend `ComponentBase` for automatic element context.
 
 ### 1. Create a component class in `src/components/`:
 
 ```typescript
 // src/components/my-component.ts
-import { IModule, component } from '@sygnal/sse';
+import { ComponentBase, component, PageBase } from '@sygnal/sse-core';
 
 @component('my-component')  // ← Decorator auto-registers this component!
-export class MyComponent implements IModule {
-  private elem: HTMLElement;
+export class MyComponent extends ComponentBase {
 
-  constructor(elem: HTMLElement) {
-    this.elem = elem;
-  }
-
-  setup(): void {
+  protected onPrepare(): void {
     // Synchronous setup - runs before DOM ready
+    // Access element and context automatically
+    console.log('Component name:', this.context.name);
+    console.log('Component ID:', this.context.id);
+    console.log('Data attributes:', this.context.dataAttributes);
   }
 
-  async exec(): Promise<void> {
+  protected async onLoad(): Promise<void> {
     // Asynchronous execution - runs after DOMContentLoaded
-    console.log('MyComponent initialized!');
+    console.log('MyComponent initialized on:', this.element);
 
-    this.elem.addEventListener('click', () => {
+    // Access current page info via singleton
+    const page = PageBase.getCurrentPage();
+    if (page) {
+      console.log('Component on page:', page.pageInfo.pageId);
+      console.log('Collection item:', page.pageInfo.itemSlug);
+    }
+
+    // Add event listeners
+    this.element.addEventListener('click', () => {
       console.log('Component clicked!');
     });
   }
@@ -282,12 +320,43 @@ import "./components/my-component";  // ← Add your import here!
 ### 3. Use in Webflow:
 
 ```html
-<div data-component="my-component">
+<div data-component="my-component" data-component-id="nav-main">
   <!-- Component content -->
 </div>
 ```
 
 The component is automatically discovered and instantiated!
+
+### Automatic Component Context
+
+When you extend `ComponentBase`, your component automatically gets:
+
+- `this.element` - The HTMLElement the component is bound to
+- `this.context.name` - Component name from `data-component` attribute
+- `this.context.id` - Component ID from `data-component-id` attribute (if present)
+- `this.context.dataAttributes` - All data-* attributes on the element
+
+### Accessing Page Info from Components
+
+Components can access the current page via the singleton pattern:
+
+```typescript
+protected async onLoad(): Promise<void> {
+  const page = PageBase.getCurrentPage();
+
+  if (page) {
+    // Access all page info
+    console.log('Page ID:', page.pageInfo.pageId);
+    console.log('Collection:', page.pageInfo.collectionId);
+    console.log('Item Slug:', page.pageInfo.itemSlug);
+
+    // Component logic based on page context
+    if (page.pageInfo.collectionId === 'products') {
+      // Product-specific component behavior
+    }
+  }
+}
+```
 
 ### Component Features
 
@@ -295,7 +364,8 @@ The component is automatically discovered and instantiated!
 - **Type-safe**: Full TypeScript support with strict typing
 - **Component Manager**: All instances registered in `window.componentManager`
 - **Error handling**: Graceful error handling with console warnings
-- **Lifecycle hooks**: `setup()` and `exec()` methods for different initialization phases
+- **Lifecycle hooks**: `onPrepare()` and `onLoad()` methods for different initialization phases
+- **Automatic context**: Element and data attributes automatically detected
 
 ### Accessing Component Instances
 
@@ -388,20 +458,30 @@ npm run watch
 
 The SSE framework uses a two-phase initialization:
 
-1. **`setup()`** - Runs synchronously at `</head>`, before DOM is ready
-   - Good for: Configuration, early initialization, no DOM access needed
+1. **`onPrepare()`** - Runs synchronously during `<head>` load, before DOM is ready
+   - Good for: Configuration, early initialization, reading data attributes
 
-2. **`exec()`** - Runs asynchronously after `DOMContentLoaded`
+2. **`onLoad()`** - Runs asynchronously after `DOMContentLoaded`
    - Good for: DOM manipulation, event binding, API calls
 
-### Module Pattern
+### Base Class Pattern
 
-All pages and components implement the `IModule` interface:
+All pages extend `PageBase` and components extend `ComponentBase`:
 
 ```typescript
-interface IModule {
-  setup(): void;
-  exec(): Promise<void>;
+// Pages get automatic Webflow context
+export abstract class PageBase {
+  protected pageInfo: WebflowPageInfo;  // Auto-populated
+  protected abstract onPrepare(): void;
+  protected abstract onLoad(): Promise<void>;
+}
+
+// Components get automatic element context
+export abstract class ComponentBase {
+  protected element: HTMLElement;       // Auto-provided
+  protected context: ComponentContext;  // Auto-populated
+  protected abstract onPrepare(): void;
+  protected abstract onLoad(): Promise<void>;
 }
 ```
 
@@ -412,7 +492,7 @@ Components are automatically discovered via the `data-component` attribute and i
 ## Dependencies
 
 ### Production
-- **@sygnal/sse** - SSE framework core
+- **@sygnal/sse-core** - SSE framework core with PageBase and ComponentBase
 - **gsap** - Animation library (optional)
 - **js-cookie** - Cookie handling utility
 
