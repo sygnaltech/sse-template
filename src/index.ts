@@ -67,11 +67,11 @@ const setup = () => {
  * Perform exec - asynchronous execution after DOM ready
  */
 const exec = () => {
-    // Execute route
-    dispatcher.execRoute();
-
-    // Initialize all components
+    // Initialize all components FIRST so they're available in componentManager
     initializeComponents();
+
+    // Execute route AFTER components are registered
+    dispatcher.execRoute();
 }
 
 /**
