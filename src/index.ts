@@ -10,7 +10,7 @@
  */
 
 import { VERSION } from "./version";
-import { routeDispatcher, initializeComponents, getRegistryStats } from "./routes";
+import { routeDispatcher, initializeComponents, getRegistryStats, initializeFIX, FIXDebug } from "./registry";
 import { initSSE } from "@sygnal/sse-core";
 import { ComponentManager } from "@sygnal/sse-core";
 import type { SiteGlobalData } from "./types";
@@ -38,10 +38,14 @@ declare global {
 
         // SA5 library (if using Sygnal Attributes)
         sa5: unknown;
+
+        // FIX debug helpers
+        FIXDebug: typeof FIXDebug;
     }
 }
 
 window.componentManager = new ComponentManager();
+window.FIXDebug = FIXDebug;
 
 // Init SSE Engine
 initSSE();
@@ -69,6 +73,9 @@ const setup = () => {
 const exec = () => {
     // Initialize all components FIRST so they're available in componentManager
     initializeComponents();
+
+    // Initialize FIX system (Functional Interactions)
+    initializeFIX();
 
     // Execute route AFTER components are registered
     dispatcher.execRoute();

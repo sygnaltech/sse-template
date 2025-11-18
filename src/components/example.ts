@@ -29,8 +29,8 @@ export class ExampleComponent extends ComponentBase {
     // Access page info via singleton
     const page = PageBase.getCurrentPage();
     if (page) {
-      console.log('Example component on page:', page.pageInfo.pageId);
-      console.log('Collection item:', page.pageInfo.itemSlug);
+      console.log('Example component on page:', page.getPageInfo().pageId);
+      console.log('Collection item:', page.getPageInfo().itemSlug);
     }
 
     // Bind events

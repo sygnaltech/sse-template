@@ -2,6 +2,7 @@
     "compilerOptions": {
       "target": "ES6",
       "module": "commonjs",
+      "lib": ["ES2015", "DOM"],
       "declaration": true,
       "outDir": "./dist",
       "strict": true,
@@ -9,7 +10,8 @@
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true,
       "experimentalDecorators": true,
-      "emitDecoratorMetadata": true
+      "emitDecoratorMetadata": true,
+      "moduleResolution": "node"
     },
     "include": ["src"],
     "exclude": ["node_modules", "dist"]
