@@ -4,9 +4,73 @@ const sass = require('sass');
 const fs = require('fs');
 const path = require('path');
 const glob = require('glob');
+const packageJson = require('./package.json');
 
 // Check if watch mode is enabled
 const isWatch = process.argv.includes('--watch');
+
+// Determine environment (default to development)
+const env = process.env.NODE_ENV || 'development';
+const isProduction = env === 'production';
+
+/**
+ * Load environment variables from .env file
+ */
+function loadEnvFile() {
+  let envFile = '.env'; // default to development
+
+  if (env === 'production') {
+    envFile = '.env.prod';
+  } else if (env === 'test') {
+    envFile = '.env.test';
+  }
+
+  const envPath = path.join(__dirname, envFile);
+
+  console.log(`Loading environment: ${env}`);
+  console.log(`Environment file: ${envFile}`);
+
+  if (!fs.existsSync(envPath)) {
+    console.warn(`⚠ Warning: ${envFile} not found`);
+    return {};
+  }
+
+  const envVars = {};
+  const envContent = fs.readFileSync(envPath, 'utf8');
+
+  envContent.split('\n').forEach(line => {
+    // Skip empty lines and comments
+    line = line.trim();
+    if (!line || line.startsWith('#')) return;
+
+    // Parse KEY=VALUE
+    const match = line.match(/^([^=]+)=(.*)$/);
+    if (match) {
+      const key = match[1].trim();
+      let value = match[2].trim();
+
+      // Remove quotes if present
+      if ((value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+
+      envVars[key] = value;
+    }
+  });
+
+  console.log(`✓ Loaded ${Object.keys(envVars).length} environment variables from file`);
+
+  // Merge with process.env (Netlify/CI environment variables take precedence)
+  const finalEnvVars = {
+    ...envVars,
+    ...(process.env.API_BASE_URL && { API_BASE_URL: process.env.API_BASE_URL }),
+    ...(process.env.MEMBERSTACK_ID && { MEMBERSTACK_ID: process.env.MEMBERSTACK_ID }),
+  };
+
+  console.log('Final environment variables:', Object.keys(finalEnvVars));
+  return finalEnvVars;
+}
 
 // Single entry point for bundling (only index.ts is loaded in Webflow)
 const entryPoint = './src/index.ts';
@@ -77,6 +141,19 @@ function buildSCSS() {
 async function buildTypeScript() {
   console.log('Bundling TypeScript with esbuild...');
 
+  // Load environment variables
+  const envVars = loadEnvFile();
+
+  // Create define object for environment variable replacement
+  const define = {
+    'process.env.NODE_ENV': JSON.stringify(env),
+  };
+
+  // Add all loaded env vars to define
+  Object.keys(envVars).forEach(key => {
+    define[`process.env.${key}`] = JSON.stringify(envVars[key]);
+  });
+
   try {
     await esbuild.build({
       entryPoints: [entryPoint],
@@ -85,7 +162,12 @@ async function buildTypeScript() {
       outfile: 'dist/index.js',
       platform: 'browser',
       target: 'es6',
-      minify: false, // Set to true for production builds
+      minify: isProduction,
+      define: define,
+      banner: {
+        js: `/* Version: ${packageJson.version} | Build: ${new Date().toISOString()} */`,
+//        js: `/* Version: ${packageJson.version} | Build: ${new Date().toISOString()} | Environment: ${env} */`,
+      },
       watch: isWatch ? {
         onRebuild(error, result) {
           if (error) {
