@@ -29,6 +29,7 @@ import { Site } from "./site";
 import "./pages/home";
 import "./pages/blog";
 import "./pages/about";
+import "./pages/valet";
 // Add more page imports here as you create them
 
 // ============================================================
