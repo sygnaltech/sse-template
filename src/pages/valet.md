@@ -58,6 +58,30 @@ Use the `sse:active` attribute in CSS to style active items:
 }
 ```
 
+### Sorting Active Items to Top
+
+After marking items as active, the handler also sorts active items to the top of each section.
+
+**Attribute:** `sse:section`
+
+Place `sse:section` on the wrapper element around a group of items to opt that group into sorting. After active tagging runs, items within each section are re-ordered so that any card containing an `sse:active` element moves to the top of its grid, preserving the original order among active items and among non-active items (a stable sort).
+
+The sort operates on the "card" level — the first ancestor of each `sse:item` whose parent contains sibling cards. This works naturally with Webflow CMS collection lists (`.w-dyn-items` > `.w-dyn-item`) without needing extra markup.
+
+**Example:**
+
+```html
+<div sse:section="interior-detailing">
+  <div class="detail-grid">
+    <div class="detail-item"><a sse:item="item-a">Item A</a></div>
+    <div class="detail-item"><a sse:item="item-b">Item B</a></div>
+    <div class="detail-item"><a sse:item="item-c">Item C</a></div>
+  </div>
+</div>
+```
+
+If `item-b` is marked active, after the handler runs the DOM order becomes `item-b`, `item-a`, `item-c`.
+
 ### Console Logging
 
 The handler logs each step to the console with a `[valet]` prefix for debugging:
@@ -66,3 +90,5 @@ The handler logs each step to the console with a `[valet]` prefix for debugging:
 - Each active slug value
 - Number of `sse:item` matches per slug
 - Each element that receives `sse:active`
+- Count of `sse:section` wrappers found
+- Per-section sort summary (cards sorted, how many were active)
