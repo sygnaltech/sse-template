@@ -1,7 +1,7 @@
 /**
  * Template-specific type definitions
  *
- * Note: Core framework types are exported from @sygnal/sse
+ * Note: Core framework types are exported from @sygnal/sse-core
  */
 
 /**

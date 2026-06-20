@@ -54,27 +54,33 @@ Run both commands in separate terminals for the best development experience.
 ```
 sse-template/
 ├── src/
-│   ├── index.ts              # Main entry point
+│   ├── index.ts              # Main entry point (only file bundled)
 │   ├── site.ts               # Site-level module
-│   ├── routes.ts             # Route & component imports
+│   ├── registry.ts           # ⭐ Central registry: import all pages/components/actions here
 │   ├── types.ts              # Template-specific types
-│   ├── version.ts            # Version constant
+│   ├── version.ts            # Version (re-exported from package.json)
 │   ├── site.scss             # Global styles
 │   ├── pages/
 │   │   ├── home.ts          # Home page module
 │   │   ├── blog.ts          # Blog page (wildcard example)
 │   │   └── about.ts         # About page (multi-route example)
-│   └── components/
-│       ├── test.ts          # Test component
-│       └── example.ts       # Example component
+│   ├── components/
+│   │   ├── test.ts          # Test component
+│   │   └── example.ts       # Example component
+│   └── actions/
+│       └── example-action.ts # Example FIX action
 ├── dist/                     # Compiled output (git-ignored)
 ├── build.js                  # Build script (tsc + esbuild + sass)
-├── generate-imports.js       # Optional: Auto-generate imports
 ├── package.json             # Dependencies & scripts
 ├── tsconfig.json            # TypeScript config
-├── MIGRATION.md             # Migration guide for v0.3.0+
+├── docs/                    # Migration guides (SSE2, FIX)
+├── AGENTS.md                # Authoritative guide for AI agents
 └── README.md                # This file
 ```
+
+> **Note:** `registry.ts` is the single place where pages, components, and actions are
+> registered — importing a module here is what triggers its `@page`/`@component`/`@action`
+> decorator. A module that isn't imported in `registry.ts` never runs.
 
 ## npm Scripts
 
@@ -165,7 +171,7 @@ export class AboutPage extends PageBase {
 }
 ```
 
-### 2. Import in `src/routes.ts` (under PAGES section):
+### 2. Import in `src/registry.ts` (under PAGES section):
 
 ```typescript
 // ============================================================
@@ -177,7 +183,7 @@ import "./pages/about";  // ← Add your import here!
 
 The route is automatically registered. No manual route mapping needed!
 
-**Note:** All pages and components are imported in `routes.ts` - this is the central registry location.
+**Note:** All pages, components, and actions are imported in `registry.ts` - this is the central registry location.
 
 ### Automatic Webflow Context
 
@@ -307,7 +313,7 @@ export class MyComponent extends ComponentBase {
 }
 ```
 
-### 2. Import in `src/routes.ts` (under COMPONENTS section):
+### 2. Import in `src/registry.ts` (under COMPONENTS section):
 
 ```typescript
 // ============================================================
@@ -320,7 +326,7 @@ import "./components/my-component";  // ← Add your import here!
 ### 3. Use in Webflow:
 
 ```html
-<div data-component="my-component" data-component-id="nav-main">
+<div sse-component="my-component" sse-component-id="nav-main">
   <!-- Component content -->
 </div>
 ```
@@ -332,8 +338,8 @@ The component is automatically discovered and instantiated!
 When you extend `ComponentBase`, your component automatically gets:
 
 - `this.element` - The HTMLElement the component is bound to
-- `this.context.name` - Component name from `data-component` attribute
-- `this.context.id` - Component ID from `data-component-id` attribute (if present)
+- `this.context.name` - Component name from `sse-component` attribute
+- `this.context.id` - Component ID from `sse-component-id` attribute (if present)
 - `this.context.dataAttributes` - All data-* attributes on the element
 
 ### Accessing Page Info from Components
@@ -379,6 +385,68 @@ const types = window.componentManager.getComponentTypes();
 // Get total count
 const total = window.componentManager.getTotalCount();
 ```
+
+## FIX — Functional Interactions
+
+FIX is a declarative, event-driven interaction system: HTML attributes fire **named events**, and
+TypeScript **actions** respond to them. It's re-exported from `@sygnal/sse-core` (implemented in
+`@sygnal/fix`) and initialized automatically via `initializeFIX()` in `index.ts`.
+
+### 1. Create an action in `src/actions/`:
+
+```typescript
+// src/actions/example-action.ts
+import { ActionBase, action, type TriggerData } from "@sygnal/sse-core";
+
+@action('example-action')
+export class ActionExample extends ActionBase {
+  init(): void {
+    // Runs once when the action is registered
+  }
+
+  async trigger(triggerElement: HTMLElement, triggerData: TriggerData): Promise<void> {
+    // Runs when the bound event fires.
+    // triggerData carries values from trigger:click:data:* attributes
+    const message = triggerData['message'] || 'Hello!';
+    console.log(message);
+  }
+}
+```
+
+### 2. Register it in `src/registry.ts` (under ACTIONS section):
+
+```typescript
+import { ActionExample } from "./actions/example-action";
+registerProgrammaticAction('example-action', 'example-event', ActionExample);
+```
+
+`registerProgrammaticAction(actionType, eventName, ActionClass)` connects the action to a named event.
+
+### 3. Trigger it from Webflow HTML:
+
+```html
+<button trigger:click="example-event" trigger:click:data:message="Custom message">
+  Click Me
+</button>
+```
+
+`trigger:click` is built in. Extra `trigger:click:data:*` attributes are passed to the action as
+`triggerData`.
+
+### Debugging FIX
+
+From the browser console:
+
+```javascript
+FIXDebug.stats()        // Full system stats
+FIXDebug.triggerTypes() // Registered trigger types
+FIXDebug.actionTypes()  // Registered action types
+FIXDebug.triggers()     // Active trigger instances on the page
+FIXDebug.actions()      // Active action instances on the page
+FIXDebug.events()       // Registered events
+```
+
+See [docs/02-MIGRATION-FIX.md](docs/02-MIGRATION-FIX.md) for the full FIX reference.
 
 ## Integration with Webflow
 
@@ -487,7 +555,7 @@ export abstract class ComponentBase {
 
 ### Component Discovery
 
-Components are automatically discovered via the `data-component` attribute and instantiated by the framework.
+Components are automatically discovered via the `sse-component` attribute and instantiated by the framework.
 
 ## Dependencies
 
