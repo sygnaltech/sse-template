@@ -2,4 +2,12 @@ node_modules
 .env
 .DS_STORE
 
+.claude/
+
 dist/
+# Local Netlify folder
+.netlify
+
+.playwright-mcp/
+
+.mcp.json
