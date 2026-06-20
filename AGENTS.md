@@ -77,6 +77,33 @@ export class Nav extends ComponentBase {
 - Every component instance is registered in `window.componentManager`; query at runtime via
   `window.componentManager.getComponentsByType<T>('nav')`, `.getComponentTypes()`, `.getTotalCount()`.
 
+#### Binding conventions — put the attribute on the component ROOT
+
+These make a component portable. Follow them unless there's a strong reason not to.
+
+- **`sse-component` goes on the component's own root element — never on a wrapper around it.**
+  A component must self-activate wherever it is dropped. If the attribute sits on a surrounding
+  wrapper, an instance placed anywhere else is dead. In Webflow, set the attribute on the
+  **component definition's root** so every instance inherits it (don't tag a layout wrapper).
+- **Tag sub-element roles with `sse-part`** — the library ignores `sse-part`; *your* component
+  code queries it. This decouples behavior from class names, so one component works across
+  different markups / visual variants:
+  ```html
+  <div sse-component="accordion">                <!-- item root: the component -->
+    <div sse-part="trigger">Question <svg sse-part="icon"></svg></div>
+    <div sse-part="panel">Answer…</div>
+  </div>
+  ```
+  Always query with a sensible fallback for robustness / legacy markup:
+  `el.querySelector('[sse-part="trigger"], .accordion__trigger')`.
+- **Group-coordinated behaviors** (e.g. single-open accordions, radio-like toggles) still bind
+  **per item on the item root**, and coordinate across instances via the DOM (e.g. close sibling
+  items sharing the same parent) — not by binding a container. Keep state of record in the DOM
+  (`aria-expanded`, etc.) so any instance can read/affect its siblings consistently.
+- **Raw / CMS markup** that can't carry attributes: expose the per-element init as an exported
+  function and add a fallback scan in `site.ts` that calls the *same* function, so behavior is
+  identical whether the element was attribute-bound or class-matched.
+
 ### 3. FIX action — declarative, event-driven interactions
 FIX ("Functional Interactions") connects HTML triggers to TypeScript actions through named events.
 It is re-exported from `@sygnal/sse-core` (the implementation lives in `@sygnal/fix`).
@@ -192,6 +219,8 @@ cache. Update the `@VERSION` in the Webflow `<script>` to match.
 - ❌ Don't use the legacy pattern (`implements IModule`, `setup()`/`exec()`, `constructor(elem)`).
   Extend `PageBase`/`ComponentBase`/`ActionBase` and implement `onPrepare`/`onLoad` (or `init`/`trigger`).
 - ❌ Don't use `data-component`. The discovery attribute is `sse-component`.
+- ❌ Don't bind `sse-component` to a wrapper around a component — it goes on the component's **own
+  root** so every instance self-activates (see *Binding conventions*). Tag sub-parts with `sse-part`.
 - ❌ Don't start `npm run watch`/`serve` (long-running). Ask the user to run them.
 - ❌ Don't read or commit secret files (`.env`, `.env.prod`, keys).
 
