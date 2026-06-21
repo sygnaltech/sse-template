@@ -49,6 +49,44 @@ npm run serve    # Start local dev server (http://127.0.0.1:3000)
 
 Run both commands in separate terminals for the best development experience.
 
+## Quick Start (Existing Project)
+
+If you already have a local project with its own git repo and want to pull this template's
+files into it — **without** inheriting the template's commit history — use git to drop the
+template contents into your working tree:
+
+```bash
+git init                                            # skip if the repo already exists
+git remote add template https://github.com/sygnaltech/sse-template.git
+git fetch template --depth=1
+git checkout template/main -- .                     # drop template files into the working tree, NO template history
+git remote remove template                          # detach from the template
+```
+
+Then install and build:
+
+```bash
+npm install
+npm run build
+```
+
+**What this does:** `git checkout template/main -- .` copies the template's files into your
+working tree and stages them. Your repo keeps its own history; none of the template's commits
+are imported. Removing the remote detaches you from the template entirely.
+
+> ⚠️ **This overwrites same-named files.** Any file that exists in both your project and the
+> template (e.g. `package.json`, `tsconfig.json`, `README.md`, `.gitignore`, `build.js`) is
+> **replaced** by the template's version. Commit or stash your work first so you can review and
+> revert. After checkout, run `git status` and `git diff --cached` to see exactly what landed.
+>
+> For `package.json` and `tsconfig.json` you'll usually want to **merge** rather than accept the
+> template wholesale — keep your existing fields and add the template's dependencies, scripts, and
+> the required compiler options (`experimentalDecorators`, `emitDecoratorMetadata`,
+> `resolveJsonModule`, `"DOM"` in `lib`).
+
+**Pulling template updates later:** re-add the remote, fetch, and check out just the paths you
+want — e.g. `git checkout template/main -- build.js` — then remove the remote again.
+
 ## Project Structure
 
 ```
